@@ -63,6 +63,16 @@ body {
     background-color: #f4f4f9;
 }
 
+.sidebar ul li.selected {
+    background-color: #d4edda;
+    border-left: 5px solid #28a745;
+}
+
+.sidebar ul li.active {
+    background-color: #d4edda;
+    border-left: 5px solid #28a745;
+}
+
 /* Chat box styles */
 .chat-box {
     width: 70%;

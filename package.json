@@ -19,7 +19,8 @@
         "puppeteer": "^24.2.0",
         "socket.io": "^4.8.1",
         "tough-cookie": "^5.1.1",
-        "socket.io-client": "^4.8.1"
+        "socket.io-client": "^4.8.1",
+        "express-session": "^1.17.3"
     },
     "engines": {
         "node": ">=14.0.0"

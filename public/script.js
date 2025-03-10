@@ -54,11 +54,29 @@ logoutButton.addEventListener('click', () => {
     });
 });
 
+// Check for existing session
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        agentName = user.displayName;
+        loginContainer.style.display = 'none';
+        appContainer.style.display = 'flex';
+    } else {
+        loginContainer.style.display = 'flex';
+        appContainer.style.display = 'none';
+    }
+});
+
 socket.on('connect', () => {
     console.log('Connected to server');
     socket.emit('getAllUsers', (receivedUsers) => {
         console.log('Users received:', receivedUsers);
-        users = receivedUsers;
+        users = receivedUsers.map(user => ({
+            senderId: user.senderId,
+            name: user.name,
+            newMessages: user.newMessages,
+            lastMessage: user.lastMessage,
+            lastTimestamp: user.lastTimestamp
+        }));
         updateUserList();
     });
 });
@@ -85,6 +103,7 @@ socket.on('newMessage', (data) => {
     notificationSound.play().catch(error => {
         console.error('Error playing notification sound:', error);
     });
+    sortUserList();
 });
 
 sendButton.addEventListener('click', () => {
@@ -157,13 +176,22 @@ function updateUserList() {
             notification.textContent = user.newMessages;
             li.appendChild(notification);
         }
+        if (user.senderId === selectedUser) {
+            li.classList.add('active');
+        }
         li.addEventListener('click', () => {
             selectedUser = user.senderId;
             userName = user.name || 'User';
             user.newMessages = 0;
             loadMessages(user.senderId);
             updateUserList();
+            socket.emit('clearNotifications', user.senderId); // Notify the server to clear notifications
         });
         userList.appendChild(li);
     });
+}
+
+function sortUserList() {
+    users.sort((a, b) => new Date(b.lastTimestamp) - new Date(a.lastTimestamp));
+    updateUserList();
 }

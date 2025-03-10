@@ -16,6 +16,7 @@ const mongoose = require('mongoose');
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const path = require('path');
+const session = require('express-session');
 
 mongoose.connect('mongodb+srv://admin:admin@cluster0.0katx.mongodb.net/?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('MongoDB connected'))
@@ -31,6 +32,16 @@ const chatSchema = new mongoose.Schema({
 });
 
 const Chat = mongoose.model('Chat', chatSchema);
+
+const userSchema = new mongoose.Schema({
+    senderId: String,
+    name: String,
+    newMessages: { type: Number, default: 0 },
+    lastMessage: String,
+    lastTimestamp: Date
+});
+
+const User = mongoose.model('User', userSchema);
 
 function sendLiveAgentLink(senderId) {
     // Get current time in Pakistan Time (PKT)
@@ -70,6 +81,13 @@ app.use(cors({
 }));
 
 app.use(bodyParser.json());
+
+app.use(session({
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // Set to true if using HTTPS
+}));
 
 // Store user states for tracking requests
 let userTrackingState = {};
@@ -469,6 +487,12 @@ ${formattedActivities}`;
             default:
                 sendWhatsAppMessage(senderId, welcomeMessage);
         }
+
+        await User.updateOne(
+            { senderId },
+            { $set: { name: userName, lastMessage: userMessage, lastTimestamp: new Date() }, $inc: { newMessages: 1 } },
+            { upsert: true }
+        );
     }
     res.sendStatus(200);
 });
@@ -539,6 +563,7 @@ io.on('connection', (socket) => {
         await sendWhatsAppMessage(senderId, message);
         const chat = new Chat({ senderId, message, sender: 'agent', name: 'Agent 1' });
         await chat.save();
+        await User.updateOne({ senderId }, { $set: { lastMessage: message, lastTimestamp: new Date() } });
         io.emit('newMessage', { senderId, message, sender: 'agent', timestamp: new Date().toLocaleString(), name: 'Agent 1' });
     });
 
@@ -569,13 +594,25 @@ io.on('connection', (socket) => {
     socket.on('getAllUsers', async (callback) => {
         try {
             console.log('Fetching all users');
-            const users = await Chat.aggregate([
-                { $group: { _id: "$senderId", name: { $first: "$name" } } }
-            ]);
-            console.log('Users fetched:', users);
-            callback(users.map(user => ({ senderId: user._id, name: user.name })));
+            const users = await User.find().sort({ lastTimestamp: -1 });
+            callback(users.map(user => ({
+                senderId: user.senderId,
+                name: user.name,
+                newMessages: user.newMessages,
+                lastMessage: user.lastMessage,
+                lastTimestamp: user.lastTimestamp
+            })));
         } catch (error) {
             console.error('Error fetching users:', error);
+        }
+    });
+
+    socket.on('clearNotifications', async (senderId) => {
+        try {
+            await User.updateOne({ senderId }, { $set: { newMessages: 0 } });
+            console.log(`Notifications cleared for user: ${senderId}`);
+        } catch (error) {
+            console.error('Error clearing notifications:', error);
         }
     });
 
