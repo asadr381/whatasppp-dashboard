@@ -159,17 +159,22 @@ body {
     border-radius: 5px;
     max-width: 60%;
     word-wrap: break-word;
+    display: flex;
+    flex-direction: column;
 }
 
 .message.user {
     background-color: #dcf8c6;
     align-self: flex-start;
+    text-align: left;
 }
 
 .message.agent {
     background-color: #fff;
     align-self: flex-end;
     border: 1px solid #ccc;
+    text-align: right;
+    margin-left: auto; /* Ensure the entire message box is aligned to the right */
 }
 
 .message .timestamp {

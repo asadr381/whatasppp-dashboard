@@ -161,7 +161,7 @@ function addMessage(message, sender, timestamp, name, type, url) {
     div.classList.add('message', sender);
     div.innerHTML = `<span class="timestamp">${timestamp} - ${name}</span>`;
 
-    if ( url) {
+    if (url) {
         addImageMessage(div, url);
     } else if (message) {
         addTextMessage(div, message);
