@@ -85,20 +85,20 @@ socket.on('newMessage', (data) => {
     const user = users.find(u => u.senderId === data.senderId);
     if (user) {
         user.newMessages = (user.newMessages || 0) + 1;
-        user.lastMessage = data.message;
+        user.lastMessage = data.message || 'Image';
         user.lastTimestamp = data.timestamp;
     } else {
         users.push({
             senderId: data.senderId,
             name: data.name || 'User',
             newMessages: 1,
-            lastMessage: data.message,
+            lastMessage: data.message || 'Image',
             lastTimestamp: data.timestamp
         });
     }
     updateUserList();
     if (data.senderId === selectedUser && data.sender !== 'agent') {
-        addMessage(data.message, 'user', data.timestamp, data.name || 'User');
+        addMessage(data.message, 'user', data.timestamp, data.name || 'User', data.type, data.url);
     }
     notificationSound.play().catch(error => {
         console.error('Error playing notification sound:', error);
@@ -126,7 +126,7 @@ deleteChatButton.addEventListener('click', () => {
 exportChatButton.addEventListener('click', () => {
     if (selectedUser) {
         socket.emit('getMessages', selectedUser, (messages) => {
-            const chatContent = messages.map(msg => `${msg.timestamp} - ${msg.name || 'User'}: ${msg.message}`).join('\n');
+            const chatContent = messages.map(msg => `${msg.timestamp} - ${msg.name || 'User'}: ${msg.message || 'Image'}`).join('\n');
             const blob = new Blob([chatContent], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -151,17 +151,61 @@ function loadMessages(senderId) {
         messages.forEach(msg => {
             const sender = msg.sender === 'agent' ? 'agent' : 'user';
             const name = sender === 'agent' ? agentName : msg.name || 'User';
-            addMessage(msg.message, sender, new Date(msg.timestamp).toLocaleString(), name);
+            addMessage(msg.message, sender, new Date(msg.timestamp).toLocaleString(), name, msg.mediaType, msg.mediaUrl);
         });
     });
 }
 
-function addMessage(message, sender, timestamp, name) {
+function addMessage(message, sender, timestamp, name, type, url) {
     const div = document.createElement('div');
     div.classList.add('message', sender);
-    div.innerHTML = `<span class="timestamp">${timestamp} - ${name}</span><p>${message}</p>`;
+    div.innerHTML = `<span class="timestamp">${timestamp} - ${name}</span>`;
+
+    if ( url) {
+        addImageMessage(div, url);
+    } else if (message) {
+        addTextMessage(div, message);
+    } else {
+        div.innerHTML += `<p>Unsupported message type</p>`;
+    }
+
     messagesDiv.appendChild(div);
     messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the bottom
+}
+
+function addImageMessage(div, url) {
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = "Received Image";
+    img.style.maxWidth = "200px";
+    img.style.borderRadius = "8px";
+    img.style.cursor = "pointer";
+    img.addEventListener('click', () => openModal(url));
+    div.appendChild(img);
+}
+
+function openModal(url) {
+    const modal = document.getElementById("imageModal");
+    const modalImg = document.getElementById("modalImage");
+    modal.style.display = "block";
+    modalImg.src = url;
+}
+
+const modal = document.getElementById("imageModal");
+const span = document.getElementsByClassName("close")[0];
+
+span.onclick = function() {
+    modal.style.display = "none";
+}
+
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+function addTextMessage(div, message) {
+    div.innerHTML += `<p>${message}</p>`;
 }
 
 function updateUserList() {

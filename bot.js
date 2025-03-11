@@ -17,6 +17,7 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const path = require('path');
 const session = require('express-session');
+const FormData = require('form-data');
 
 mongoose.connect('mongodb+srv://admin:admin@cluster0.0katx.mongodb.net/?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('MongoDB connected'))
@@ -28,7 +29,9 @@ const chatSchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now },
     status: { type: String, default: 'open' },
     sender: String,
-    name: String
+    name: String,
+    mediaUrl: String, // Add mediaUrl field to store image URL
+    mediaType: String // Add mediaType field to store media type
 });
 
 const Chat = mongoose.model('Chat', chatSchema);
@@ -149,6 +152,25 @@ app.post('/webhook', async (req, res) => {
         const senderId = message.from;
         const userMessage = message.text?.body.trim();
         const userName = contact.profile?.name || 'User';
+
+        // Handle image messages
+        if (message.type === "image") {
+            const mediaId = message.image.id;
+            const mimeType = message.image.mime_type;
+
+            // Fetch the image URL from WhatsApp
+            const imageUrl = await getMediaUrl(mediaId);
+
+            if (imageUrl) {
+                // Save the image message to the database
+                const chat = new Chat({ senderId, message: null, mediaUrl: imageUrl, mediaType: mimeType, sender: 'user', name: userName });
+                await chat.save();
+
+                // Send image details to the frontend
+                io.emit("newMessage", { senderId, timestamp: message.timestamp, type: "image", url: imageUrl, mimeType });
+            }
+            return res.sendStatus(200);
+        }
 
         // Save the message to the database if live agent chat is active
         if (liveAgentState[senderId]) {
@@ -549,6 +571,30 @@ async function sendWhatsAppMessage(to, message) {
         console.log('✅ Message sent successfully:', JSON.stringify(response.data, null, 2));
     } catch (error) {
         console.error('❌ Error sending message:', error.response ? error.response.data : error.message);
+    }
+}
+
+// Function to get the image URL from WhatsApp API
+async function getMediaUrl(mediaId) {
+    try {
+        // Step 1: Get the media URL from WhatsApp
+        const mediaResponse = await axios.get(`https://graph.facebook.com/v13.0/${mediaId}`, {
+            headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
+        });
+
+        const mediaUrl = mediaResponse.data.url;
+
+        // Step 2: Download the image using the media URL
+        const imageResponse = await axios.get(mediaUrl, {
+            headers: { Authorization: `Bearer ${ACCESS_TOKEN}` },
+            responseType: "arraybuffer",
+        });
+
+        const base64Image = Buffer.from(imageResponse.data, "binary").toString("base64");
+        return `data:${imageResponse.headers["content-type"]};base64,${base64Image}`;
+    } catch (error) {
+        console.error("Error fetching media:", error);
+        return null;
     }
 }
 

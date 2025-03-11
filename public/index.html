@@ -34,7 +34,18 @@
             </div>
         </div>
     </div>
+    <div id="chatContainer" style=" max-height: 500px; overflow-y: auto;">
+        <!-- Messages will be displayed here -->
+    </div>
     <audio id="notification-sound" src="notification.mp3" preload="auto"></audio>
+
+    <!-- Modal for image popup -->
+    <div id="imageModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImage">
+        <div id="caption"></div>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="firebaseConfig.js"></script>
     <script src="script.js"></script>
