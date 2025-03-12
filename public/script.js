@@ -293,3 +293,7 @@ document.getElementById('ticket-form').addEventListener('submit', async (event) 
         alert('Error creating ticket');
     }
 });
+
+document.getElementById('close-ticket-form').addEventListener('click', () => {
+    document.getElementById('ticket-form-container').style.display = 'none';
+});
