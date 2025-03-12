@@ -313,3 +313,48 @@ footer {
     text-decoration: none;
     cursor: pointer;
 }
+
+/* Ticket form styles */
+#ticket-form-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+#ticket-form {
+    display: flex;
+    flex-direction: column;
+}
+
+#ticket-form label {
+    margin-top: 10px;
+}
+
+#ticket-form input,
+#ticket-form select,
+#ticket-form textarea {
+    margin-top: 5px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#ticket-form button {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#ticket-form button:hover {
+    background-color: #0056b3;
+}

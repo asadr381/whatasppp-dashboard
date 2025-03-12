@@ -239,3 +239,57 @@ function sortUserList() {
     users.sort((a, b) => new Date(b.lastTimestamp) - new Date(a.lastTimestamp));
     updateUserList();
 }
+
+document.getElementById('open-ticket-btn').addEventListener('click', async () => {
+    if (!selectedUser) {
+        alert('Please select a user first.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/get-user-details?senderId=${selectedUser}`);
+        if (response.ok) {
+            const userDetails = await response.json();
+            document.getElementById('customerName').value = userDetails.name || '';
+            document.getElementById('email').value = userDetails.email || '';
+            document.getElementById('mobile').value = userDetails.mobile || selectedUser; // Pre-fill mobile with senderId if mobile is not available
+            document.getElementById('trackingNumber').value = userDetails.trackingNumber || '';
+        } else {
+            alert('Failed to fetch user details.');
+        }
+    } catch (error) {
+        console.error('Error fetching user details:', error);
+        alert('Error fetching user details.');
+    }
+
+    document.getElementById('ticket-form-container').style.display = 'block';
+});
+
+document.getElementById('ticket-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    const ticketData = Object.fromEntries(formData.entries());
+    ticketData.senderId = selectedUser; // Add senderId to the ticket data
+
+    try {
+        const response = await fetch('/create-ticket', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(ticketData),
+        });
+
+        if (response.ok) {
+            alert('Ticket created successfully');
+            document.getElementById('ticket-form-container').style.display = 'none';
+            event.target.reset();
+        } else {
+            alert('Failed to create ticket');
+        }
+    } catch (error) {
+        console.error('Error creating ticket:', error);
+        alert('Error creating ticket');
+    }
+});

@@ -667,6 +667,91 @@ io.on('connection', (socket) => {
     });
 });
 
+app.post('/create-ticket', async (req, res) => {
+    const { senderId, customerName, email, mobile, ticketType, trackingNumber, accountNumber, description } = req.body;
+
+    const ticketTypeMap = {
+        "1": "Commodity Information",
+        "2": "Customs Requirements / Paper Work",
+        "3": "Product Inquiry",
+        "4": "Transit Time",
+        "5": "Corporate or Business Account"
+    };
+
+    const formattedTicketType = ticketTypeMap[ticketType] || ticketType;
+
+    const ticketData = {
+        custom_customer_name: customerName,
+        subject: "Whatsapp General Query",
+        raised_by: email,
+        agent_group: "Customer Support",
+        custom_employee: "WebAPI",
+        ticket_type: formattedTicketType,
+        description: description,
+        custom_customer_email_address: email,
+        custom_customer_contact_number: mobile
+    };
+
+    if (trackingNumber.toLowerCase() !== '0') {
+        ticketData.custom_tracking_number_if_any = trackingNumber;
+    }
+    if (accountNumber.toLowerCase() !== '0') {
+        ticketData.custom_customer_account_number = accountNumber;
+    }
+
+    try {
+        await createTicket(senderId, ticketData);
+        res.status(200).send('Ticket created successfully');
+    } catch (error) {
+        console.error('Error creating ticket:', error);
+        res.status(500).send('Failed to create ticket');
+    }
+});
+
+app.get('/get-user-details', async (req, res) => {
+    const { senderId } = req.query;
+
+    try {
+        const user = await User.findOne({ senderId });
+        const chats = await Chat.find({ senderId });
+
+        if (user) {
+            let email = '';
+            let trackingNumber = '';
+            let mobile = '';
+
+            // Extract email, tracking number, and mobile from chat history
+            chats.forEach(chat => {
+                if (!email && chat.message && chat.message.includes('@') && chat.message.includes('.com')) {
+                    const emailMatch = chat.message.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
+                    if (emailMatch) email = emailMatch[0];
+                }
+                if (!trackingNumber && chat.message && chat.message.match(/\b1Z[A-Z0-9]{16,18}\b/)) {
+                    const trackingMatch = chat.message.match(/\b1Z[A-Z0-9]{16,18}\b/);
+                    if (trackingMatch) trackingNumber = trackingMatch[0];
+                }
+                if (!mobile && chat.message && chat.message.match(/^(0\d{3}-?\d{6,10}|3\d{9,10}|92\d{10,12})$/)) {
+                    const mobileMatch = chat.message.match(/^(0\d{3}-?\d{6,10}|3\d{9,10}|92\d{10,12})$/);
+                    if (mobileMatch) mobile = mobileMatch[0];
+                }
+            });
+
+            const userDetails = {
+                name: user.name,
+                email: email || user.email,
+                mobile: mobile || user.mobile,
+                trackingNumber: trackingNumber
+            };
+            res.status(200).json(userDetails);
+        } else {
+            res.status(404).send('User not found');
+        }
+    } catch (error) {
+        console.error('Error fetching user details:', error);
+        res.status(500).send('Failed to fetch user details');
+    }
+});
+
 http.listen(port, () => {
     console.log(`🚀 Server is running on http://localhost:${port}`);
 });
