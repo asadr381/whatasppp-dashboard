@@ -205,7 +205,7 @@ window.onclick = function(event) {
 }
 
 function addTextMessage(div, message) {
-    div.innerHTML += `<p>${message}</p>`;
+    div.innerHTML += `<h5>${message}</h5>`;
 }
 
 function updateUserList() {
