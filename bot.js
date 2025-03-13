@@ -530,7 +530,7 @@ async function createTicket(senderId, ticketData, attempt = 1) {
                 "Content-Type": "application/json",
                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
                "Accept": "application/json, text/javascript, */*; q=0.01",
-  "Accept-Language": "en-US,en;q=0.9"
+               "Accept-Language": "en-US,en;q=0.9"
        
             },
             body: JSON.stringify(ticketData)
@@ -538,6 +538,9 @@ async function createTicket(senderId, ticketData, attempt = 1) {
 
         const response = await cloudscraper(options);
         sendWhatsAppMessage(senderId, "✅ Your query has been received. Our team will contact you very soon. \n0️⃣ Main Menu");
+
+        // Emit event to frontend
+        io.emit('ticketCreated', { senderId, ticketData });
 
         console.log("📌 Ticket created successfully:", response);
     } catch (error) {
@@ -660,6 +663,12 @@ io.on('connection', (socket) => {
         } catch (error) {
             console.error('Error clearing notifications:', error);
         }
+    });
+
+    socket.on('closeChat', async (senderId) => {
+        console.log('Closing chat for user:', senderId);
+        delete liveAgentState[senderId];
+        sendWhatsAppMessage(senderId, "The chat has been closed by the agent. You can now use the menu options again. \n0️⃣ Main Menu");
     });
 
     socket.on('disconnect', () => {

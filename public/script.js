@@ -12,6 +12,7 @@ const appContainer = document.getElementById('app');
 const logoutButton = document.getElementById('logout-button');
 const googleLoginButton = document.getElementById('google-login');
 const notificationSound = document.getElementById('notification-sound');
+const agentNotificationSound = document.getElementById('agent-notification-sound');
 
 let selectedUser = null;
 let userName = '';
@@ -100,10 +101,23 @@ socket.on('newMessage', (data) => {
     if (data.senderId === selectedUser && data.sender !== 'agent') {
         addMessage(data.message, 'user', data.timestamp, data.name || 'User', data.type, data.url);
     }
-    notificationSound.play().catch(error => {
-        console.error('Error playing notification sound:', error);
-    });
+    if (data.sender === 'agent') {
+        agentNotificationSound.play().catch(error => {
+            console.error('Error playing agent notification sound:', error);
+        });
+    } else {
+        notificationSound.play().catch(error => {
+            console.error('Error playing notification sound:', error);
+        });
+    }
     sortUserList();
+});
+
+socket.on('ticketCreated', (data) => {
+    if (data.senderId === selectedUser) {
+        const timestamp = new Date().toLocaleString();
+        addMessage("Your query has been created. Our team will contact you very soon.", 'agent', timestamp, agentName);
+    }
 });
 
 sendButton.addEventListener('click', () => {
@@ -296,4 +310,13 @@ document.getElementById('ticket-form').addEventListener('submit', async (event) 
 
 document.getElementById('close-ticket-form').addEventListener('click', () => {
     document.getElementById('ticket-form-container').style.display = 'none';
+});
+
+document.getElementById('close-chat').addEventListener('click', () => {
+    if (selectedUser) {
+        socket.emit('closeChat', selectedUser);
+        selectedUser = null;
+        messagesDiv.innerHTML = '';
+        updateUserList();
+    }
 });
