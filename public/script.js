@@ -131,7 +131,7 @@ sendButton.addEventListener('click', () => {
     const message = messageInput.value;
     if (message && selectedUser) {
         const timestamp = new Date().toLocaleString();
-        socket.emit('sendMessage', { senderId: selectedUser, message });
+        socket.emit('sendMessage', { senderId: selectedUser, message, agentName }); // Include agentName
         addMessage(message, 'agent', timestamp, agentName);
         messageInput.value = '';
     }
@@ -171,7 +171,7 @@ function loadMessages(senderId) {
         messagesDiv.innerHTML = '';
         messages.forEach(msg => {
             const sender = msg.sender === 'agent' ? 'agent' : 'user';
-            const name = sender === 'agent' ? agentName : msg.name || 'User';
+            const name = msg.sender === 'agent' ? msg.name : msg.name || 'User'; // Use msg.name for agent
             addMessage(msg.message, sender, new Date(msg.timestamp).toLocaleString(), name, msg.mediaType, msg.mediaUrl);
         });
         if (messages.length > 0) {

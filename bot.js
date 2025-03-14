@@ -621,7 +621,7 @@ io.on('connection', (socket) => {
         const chat = new Chat({ senderId, message, sender: 'agent', name: agentName, lastMsgTimestamp: new Date() });
         await chat.save();
         await User.updateOne({ senderId }, { $set: { lastMessage: message, lastTimestamp: new Date() } });
-        io.emit('newMessage', { senderId, message, sender: 'agent', timestamp: new Date().toLocaleString(), name: agentName });
+        io.emit('newMessage', { senderId, message, sender: 'agent', timestamp: new Date().toLocaleString(), name: agentName }); // Include agent's name
     });
 
     socket.on('deleteMessage', async (senderId) => {
