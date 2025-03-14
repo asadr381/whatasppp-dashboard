@@ -607,13 +607,13 @@ io.on('connection', (socket) => {
     console.log('Agent connected');
 
     socket.on('sendMessage', async (data) => {
-        const { senderId, message } = data;
+        const { senderId, message, agentName } = data;
         console.log('Sending message:', data);
         await sendWhatsAppMessage(senderId, message);
-        const chat = new Chat({ senderId, message, sender: 'agent', name: 'Agent 1' });
+        const chat = new Chat({ senderId, message, sender: 'agent', name: agentName });
         await chat.save();
         await User.updateOne({ senderId }, { $set: { lastMessage: message, lastTimestamp: new Date() } });
-        io.emit('newMessage', { senderId, message, sender: 'agent', timestamp: new Date().toLocaleString(), name: 'Agent 1' });
+        io.emit('newMessage', { senderId, message, sender: 'agent', timestamp: new Date().toLocaleString(), name: agentName });
     });
 
     socket.on('deleteMessage', async (senderId) => {
