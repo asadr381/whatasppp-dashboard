@@ -13,11 +13,14 @@ const logoutButton = document.getElementById('logout-button');
 const googleLoginButton = document.getElementById('google-login');
 const notificationSound = document.getElementById('notification-sound');
 const agentNotificationSound = document.getElementById('agent-notification-sound');
+const timeRemainingDiv = document.getElementById('time-remaining');
 
 let selectedUser = null;
 let userName = '';
 let users = [];
 let agentName = '';
+let timeLeft = 0;
+let isReplyDisabled = false;
 
 // Ensure Firebase is initialized before using it
 if (!firebase.apps.length) {
@@ -121,10 +124,14 @@ socket.on('ticketCreated', (data) => {
 });
 
 sendButton.addEventListener('click', () => {
+    if (isReplyDisabled) {
+        alert('Reply time expired!');
+        return;
+    }
     const message = messageInput.value;
     if (message && selectedUser) {
         const timestamp = new Date().toLocaleString();
-        socket.emit('sendMessage', { senderId: selectedUser, message, agentName });
+        socket.emit('sendMessage', { senderId: selectedUser, message });
         addMessage(message, 'agent', timestamp, agentName);
         messageInput.value = '';
     }
@@ -164,9 +171,13 @@ function loadMessages(senderId) {
         messagesDiv.innerHTML = '';
         messages.forEach(msg => {
             const sender = msg.sender === 'agent' ? 'agent' : 'user';
-            const name = sender === 'agent' ? msg.name : msg.name || 'User';
+            const name = sender === 'agent' ? agentName : msg.name || 'User';
             addMessage(msg.message, sender, new Date(msg.timestamp).toLocaleString(), name, msg.mediaType, msg.mediaUrl);
         });
+        if (messages.length > 0) {
+            lastMessage = messages[messages.length - 1];
+            updateReplyButtonState();
+        }
     });
 }
 
@@ -320,3 +331,36 @@ document.getElementById('close-chat').addEventListener('click', () => {
         updateUserList();
     }
 });
+
+function calculateTimeLeft(timestamp) {
+    const lastMsgTime = new Date(timestamp);
+    const currentTime = new Date();
+    const timeDiff = 12 * 60 * 60 * 1000 - (currentTime - lastMsgTime);
+
+    if (timeDiff > 0) {
+        return timeDiff; // Return remaining time in milliseconds
+    } else {
+        return 0; // Time exceeded, disable reply button
+    }
+}
+
+function updateReplyButtonState() {
+    const remainingTime = calculateTimeLeft(lastMessage.timestamp);
+    timeLeft = remainingTime;
+    isReplyDisabled = remainingTime <= 0;
+    sendButton.disabled = isReplyDisabled;
+
+    // Update the time remaining display
+    if (timeLeft > 0) {
+        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+        timeRemainingDiv.textContent = `Time remaining to reply: ${hours}h ${minutes}m ${seconds}s`;
+        sendButton.style.backgroundColor = ''; // Reset to default color
+    } else {
+        timeRemainingDiv.textContent = 'Reply time expired!';
+        sendButton.style.backgroundColor = 'red'; // Change to red color
+    }
+}
+
+setInterval(updateReplyButtonState, 1000); // Update every second

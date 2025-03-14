@@ -27,12 +27,14 @@
                     <button class="logout-button" id="logout-button">Logout</button>
                     <button id="close-chat">Close Chat</button> <!-- Add this line -->
                 </div>
+                <div id="time-remaining" class="time-remaining"></div> <!-- Add this line -->
             </div>
             <div class="chat-messages" id="messages"></div>
             <div class="chat-input">
                 <input type="text" id="message-input" placeholder="Type a message...">
                 <button id="send-button">Send</button>
                 <button id="open-ticket-btn">Open Ticket</button>
+                <input type="hidden" id="last-message-timestamp">
             </div>
         </div>
     </div>

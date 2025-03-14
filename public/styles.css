@@ -26,7 +26,7 @@ body {
 }
 
 .sidebar h2 {
-    background-color: #075E54;
+    background-color: #351c15;
     color: white;
     padding: 15px;
     margin: 0;
@@ -64,13 +64,13 @@ body {
 }
 
 .sidebar ul li.selected {
-    background-color: #d4edda;
-    border-left: 5px solid #28a745;
+    background-color: #ffc400;
+    border-left: 5px solid #351c15;
 }
 
 .sidebar ul li.active {
-    background-color: #d4edda;
-    border-left: 5px solid #28a745;
+    background-color: #ffc400;
+    border-left: 5px solid #351c15;
 }
 
 /* Chat box styles */
@@ -82,7 +82,7 @@ body {
 }
 
 .chat-header {
-    background-color: #075E54;
+    background-color: #351c15;
     color: white;
     padding: 15px;
     text-align: center;
@@ -99,7 +99,7 @@ body {
 }
 
 .chat-header .options button {
-    background-color: #075E54;
+    background-color: #351c15;
     color: white;
     border: none;
     padding: 5px 10px;
@@ -109,7 +109,7 @@ body {
 }
 
 .chat-header .options button:hover {
-    background-color: #128C7E;
+    background-color: #351c15;
 }
 
 .chat-messages {
@@ -139,7 +139,7 @@ body {
 
 .chat-input button {
     padding: 15px 20px;
-    background-color: #075E54;
+    background-color: #351c15;
     border: none;
     color: white;
     font-size: 16px;
@@ -149,7 +149,7 @@ body {
 }
 
 .chat-input button:hover {
-    background-color: #128C7E;
+    background-color: #351c15;
 }
 
 /* Message styles */
@@ -163,18 +163,20 @@ body {
 }
 
 .message.user {
-    background-color: #dcf8c6;
+    background-color: #ffc400;
     align-self: flex-start;
     text-align: left;
+    
     float: left; /* Align user messages to the left */
     clear: both; /* Ensure messages do not overlap */
 }
 
 .message.agent {
-    background-color: #fff;
+    background-color: #351c15;
     align-self: flex-end;
     border: 1px solid #ccc;
     text-align: right;
+    color: #fff8f8;
     float: right; /* Align agent messages to the right */
     clear: both; /* Ensure messages do not overlap */
 }
@@ -182,7 +184,7 @@ body {
 .message .timestamp {
     display: block;
     font-size: 0.8em;
-    color: #999;
+    color: #fff8f8;
     margin-bottom: 5px;
 }
 
@@ -357,4 +359,12 @@ footer {
 
 #ticket-form button:hover {
     background-color: #0056b3;
+}
+
+/* Timer display styles */
+.reply-timer {
+    font-size: 16px;
+    color: red;
+    margin-left: 20px;
+    font-weight: bold;
 }

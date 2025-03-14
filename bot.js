@@ -31,7 +31,8 @@ const chatSchema = new mongoose.Schema({
     sender: String,
     name: String,
     mediaUrl: String, // Add mediaUrl field to store image URL
-    mediaType: String // Add mediaType field to store media type
+    mediaType: String, // Add mediaType field to store media type
+    lastMsgTimestamp: Date // Add this field to store the last message timestamp
 });
 
 const Chat = mongoose.model('Chat', chatSchema);
@@ -174,7 +175,7 @@ app.post('/webhook', async (req, res) => {
 
         // Save the message to the database if live agent chat is active
         if (liveAgentState[senderId]) {
-            const chat = new Chat({ senderId, message: userMessage, sender: 'user', name: userName });
+            const chat = new Chat({ senderId, message: userMessage, sender: 'user', name: userName, lastMsgTimestamp: new Date() });
             await chat.save();
             io.emit('newMessage', { senderId, message: userMessage, sender: 'user', timestamp: new Date().toLocaleString(), name: userName });
             return res.sendStatus(200);
@@ -515,6 +516,13 @@ ${formattedActivities}`;
             { $set: { name: userName, lastMessage: userMessage, lastTimestamp: new Date() }, $inc: { newMessages: 1 } },
             { upsert: true }
         );
+
+        // Update the last message timestamp
+        await Chat.updateOne(
+            { senderId },
+            { $set: { lastMsgTimestamp: new Date() } },
+            { upsert: true }
+        );
     }
     res.sendStatus(200);
 });
@@ -610,7 +618,7 @@ io.on('connection', (socket) => {
         const { senderId, message, agentName } = data;
         console.log('Sending message:', data);
         await sendWhatsAppMessage(senderId, message);
-        const chat = new Chat({ senderId, message, sender: 'agent', name: agentName });
+        const chat = new Chat({ senderId, message, sender: 'agent', name: agentName, lastMsgTimestamp: new Date() });
         await chat.save();
         await User.updateOne({ senderId }, { $set: { lastMessage: message, lastTimestamp: new Date() } });
         io.emit('newMessage', { senderId, message, sender: 'agent', timestamp: new Date().toLocaleString(), name: agentName });
