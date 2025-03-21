@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Bot Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .login-button, .reset-button, .forget-button {
+            background-color: #351c15;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        .reset-button, .forget-button {
+            padding: 5px 10px; /* Smaller size for reset and forget buttons */
+        }
+    </style>
+</head>
+<body>
+    <div id="login-container" class="login-container">
+        <img src="UPS.png" alt="Logo" class="logo">
+        <h2>Login to WhatsApp Dashboard</h2>
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter your username">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter your password">
+        <button class="login-button" id="login-button">Login</button>
+        <button class="reset-button" id="reset-button">Reset Password</button>
+        <button class="forget-button" id="forget-button">Forget Password</button>
+    </div>
+    <div id="app" class="container" style="display: none;">
+        <div class="sidebar">
+            <h2>Customers</h2>
+            <ul id="users"></ul>
+            <button id="delete-chat" style="display: none;">Delete Chat</button>
+            <button id="export-chat" style="display: none;">Export Chat</button>
+        </div>
+        <div class="chat-box">
+            <div class="chat-header">
+                <img src="UPS.png" alt="Logo" class="logo">
+                <h2>Chat</h2>
+                <div id="time-remaining" class="time-remaining"></div>
+                <div class="options">
+                    <button id="refresh-users">Refresh Users</button>
+                    <button id="close-chat">Close Session</button>
+                    <button id="admin-form-btn" style="display: none;">Admin Form</button>
+                    <button id="view-users-btn" style="display: none;">View Users</button>
+                    <button class="logout-button" id="logout-button">Logout</button>
+                </div>
+            </div>
+            <div class="chat-messages" id="messages"></div>
+            <div class="chat-input">
+                <input type="text" id="message-input" placeholder="Type a message...">
+                <button id="send-button">Send</button>
+                <button id="open-ticket-btn">Open Ticket</button>
+                <input type="hidden" id="last-message-timestamp">
+            </div>
+        </div>
+    </div>
+    <div id="chatContainer" style=" max-height: 500px; overflow-y: auto;">
+        <!-- Messages will be displayed here -->
+    </div>
+    <audio id="notification-sound" src="notification.mp3" preload="auto"></audio>
+    <audio id="agent-notification-sound" src="agent-notification.mp3" preload="auto"></audio>
+
+    <!-- Modal for image popup -->
+    <div id="imageModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImage">
+        <div id="caption"></div>
+    </div>
+
+    <div id="ticket-form-container" style="display: none;">
+        <form id="ticket-form">
+            <h2>Create Ticket</h2>
+
+            <label for="customerName">Customer Name:</label>
+            <input type="text" id="customerName" name="customerName" required>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+            <label for="mobile">Mobile:</label>
+            <input type="text" id="mobile" name="mobile" required>
+            <label for="ticketType">Request Type:</label>
+            <select id="ticketType" name="ticketType" required>
+                <option value="1">Commodity Information</option>
+                <option value="2">Customs Requirements / Paper Work</option>
+                <option value="3">Product Inquiry</option>
+                <option value="4">Transit Time</option>
+                <option value="5">Corporate or Business Account</option>
+                <option value="6">Rate Inquiry</option>
+            </select>
+            <label for="trackingNumber">Tracking Number (Optional):</label>
+            <input type="text" id="trackingNumber" name="trackingNumber">
+            <label for="accountNumber">Account Number (Optional):</label>
+            <input type="text" id="accountNumber" name="accountNumber">
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" required></textarea>
+            <button type="submit">Submit</button>
+            <button type="button" id="close-ticket-form">Close</button>
+        </form>
+    </div>
+
+    <!-- Admin Form Modal -->
+    <div id="admin-form-container" style="display: none;">
+        <form id="admin-form">
+            <h2>Admin Panel</h2>
+            <label for="userName">User Name:</label>
+            <input type="text" id="userName" name="userName" required>
+            <label for="userEmail">User Email:</label>
+            <input type="email" id="userEmail" name="userEmail" required>
+            <label for="userPassword">User Password:</label>
+            <input type="password" id="userPassword" name="userPassword" required>
+            <button type="button" id="add-user-btn">Add User</button>
+            <button type="button" id="close-admin-form">Close</button>
+        </form>
+    </div>
+
+    <!-- View Users Modal -->
+    <div id="view-users-container" style="display: none;">
+        <h2>Saved Users</h2>
+        <ul id="saved-users-list"></ul>
+        <button type="button" id="close-view-users">Close</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+    <script>
+        document.getElementById('reset-button').addEventListener('click', () => {
+            window.location.href = 'reset.html';
+        });
+        document.getElementById('forget-button').addEventListener('click', () => {
+            window.location.href = 'forget.html';
+        });
+
+        function toggleLiveAgents() {
+            const section = document.getElementById('live-agents-section');
+            const refreshButton = document.getElementById('refresh-live-agents');
+            section.classList.toggle('expanded');
+            refreshButton.style.display = section.classList.contains('expanded') ? 'inline-block' : 'none';
+        }
+
+        function updateLiveAgents(event) {
+            event.stopPropagation(); // Prevent triggering the toggle
+            // Fetch and update live agents logic here
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loggedInUser = sessionStorage.getItem('loggedInUser');
+            const liveAgentsSection = document.getElementById('live-agents-section');
+            if (loggedInUser) {
+                liveAgentsSection.style.display = 'block'; // Show live agents section after login
+            } else {
+                liveAgentsSection.style.display = 'none'; // Hide live agents section on login page
+            }
+        });
+    </script>
+    <div id="live-agents-section" onclick="toggleLiveAgents()">
+        <h4>Live Agents</h4>
+        <div id="live-agents-list">
+            <button id="refresh-live-agents" onclick="updateLiveAgents(event)">
+                <img src="refresh-icon.png" alt="Refresh" style="width: 20px; height: 20px; cursor: pointer;">
+            </button>
+            <p>No agents are currently online.</p>
+        </div>
+    </div>
+</body>
+</html>
