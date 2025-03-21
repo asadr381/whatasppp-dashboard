@@ -30,6 +30,15 @@ body {
     height: 100%;
 }
 
+
+
+
+curl -X POST /reset-hardcoded-admin-password \
+-H "Content-Type: application/json" \
+-d '{
+  "email": "mraza@ups.com",
+  "newPassword": "yourNewPassword123"
+}'
 /* Sidebar styles */
 .sidebar {
     width: 30%;

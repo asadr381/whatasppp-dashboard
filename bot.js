@@ -1092,6 +1092,24 @@ app.get('/check-session-status', async (req, res) => {
     }
 });
 
+app.post('/reset-hardcoded-admin-password', async (req, res) => {
+    const { email, newPassword } = req.body;
+    const hardcodedAdmins = ['shahzadahmed@ups.com', 'mraza@ups.com'];
+
+    if (!hardcodedAdmins.includes(email)) {
+        return res.status(403).send('This endpoint is only for hardcoded admin users.');
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await Login.updateOne({ email }, { $set: { password: hashedPassword } });
+        res.status(200).send(`Password for ${email} has been reset successfully.`);
+    } catch (error) {
+        console.error('Error resetting hardcoded admin password:', error);
+        res.status(500).send('Failed to reset password.');
+    }
+});
+
 http.listen(port, () => {
     console.log(`🚀 Server is running on http://localhost:${port}`);
 });
