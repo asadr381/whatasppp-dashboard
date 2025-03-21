@@ -112,6 +112,14 @@ function showPopup(message, type = 'info') {
 document.getElementById('login-button').addEventListener('click', async () => {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    const userCaptcha = document.getElementById('captcha-input').value;
+    const generatedCaptcha = sessionStorage.getItem('captcha');
+
+    if (userCaptcha !== generatedCaptcha) {
+        alert('Invalid CAPTCHA. Please try again.');
+        generateCaptcha();
+        return;
+    }
 
     try {
         const response = await fetch('/login', {

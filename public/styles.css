@@ -273,11 +273,13 @@ body {
 }
 
 .message.user .timestamp {
-    color: #000; /* Black color for user message timestamp */
+    color: #000;
+    font-size: revert; /* Black color for user message timestamp */
 }
 
 .message.agent .timestamp {
-    color: #fff8f8; /* White color for agent message timestamp */
+    color: #fff8f8;
+    font-size: revert; /* White color for agent message timestamp */
 }
 
 .message img {

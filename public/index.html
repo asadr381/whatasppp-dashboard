@@ -28,6 +28,11 @@
         <input type="text" id="username" placeholder="Enter your username">
         <label for="password">Password</label>
         <input type="password" id="password" placeholder="Enter your password">
+        <div id="captcha-container">
+            <canvas id="captcha" width="150" height="50"></canvas>
+            <button id="refresh-captcha" type="button">↻</button>
+        </div>
+        <input type="text" id="captcha-input" placeholder="Enter CAPTCHA" required>
         <button class="login-button" id="login-button">Login</button>
         <button class="reset-button" id="reset-button">Reset Password</button>
         <button class="forget-button" id="forget-button">Forget Password</button>
@@ -157,6 +162,33 @@
                 liveAgentsSection.style.display = 'none'; // Hide live agents section on login page
             }
         });
+
+        function generateCaptcha() {
+            const canvas = document.getElementById('captcha');
+            const ctx = canvas.getContext('2d');
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const captchaText = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+            sessionStorage.setItem('captcha', captchaText);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '30px Arial';
+            ctx.fillStyle = '#000';
+            ctx.fillText(captchaText, 10, 35);
+        }
+
+        document.getElementById('refresh-captcha').addEventListener('click', generateCaptcha);
+
+        document.getElementById('login-button').addEventListener('click', () => {
+            const userCaptcha = document.getElementById('captcha-input').value;
+            const generatedCaptcha = sessionStorage.getItem('captcha');
+            if (userCaptcha !== generatedCaptcha) {
+                alert('Invalid CAPTCHA. Please try again.');
+                generateCaptcha();
+                return;
+            }
+            // ...existing login logic...
+        });
+
+        document.addEventListener('DOMContentLoaded', generateCaptcha);
     </script>
     <div id="live-agents-section" onclick="toggleLiveAgents()">
         <h4>Live Agents</h4>
