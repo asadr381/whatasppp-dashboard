@@ -33,11 +33,11 @@ body {
 
 
 
-curl -X POST /reset-hardcoded-admin-password \
+curl -X POST http://localhost:3000/reset-hardcoded-admin-password \
 -H "Content-Type: application/json" \
 -d '{
   "email": "mraza@ups.com",
-  "newPassword": "yourNewPassword123"
+  "newPassword": "mar@2025"
 }'
 /* Sidebar styles */
 .sidebar {

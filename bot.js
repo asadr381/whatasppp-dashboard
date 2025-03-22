@@ -1058,7 +1058,7 @@ app.post('/forget-password', async (req, res) => {
             // Send email with new password using Resend API
             try {
                 await resend.emails.send({
-                    from: 'onboarding@resend.dev',
+                    from: 'info@ulspakistan.com',
                     to: email,
                     subject: 'Your New Password',
                     html: `<p>Your new password is: <strong>${newPassword}</strong></p>`

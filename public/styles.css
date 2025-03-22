@@ -10,6 +10,7 @@ body {
     overflow: hidden;
     justify-content: center;
     align-items: center;
+    transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 .container {
@@ -1017,4 +1018,132 @@ footer {
 
 .secondary-button:hover {
     background-color: #5a6268;
+}
+
+/* Light mode styles */
+body.light {
+    background-color: #f0f2f5;
+    color: #333;
+}
+
+/* Dark mode styles */
+body.dark {
+    background-color: #121212;
+    color: #f0f2f5;
+}
+
+body.dark .sidebar {
+    background-color: #1e1e1e;
+    color: #f0f2f5;
+}
+
+body.dark .chat-box {
+    background-color: #1e1e1e;
+    color: #f0f2f5;
+}
+
+body.dark .chat-header {
+    background-color: #333;
+    color: #f0f2f5;
+}
+
+body.dark .chat-messages {
+    background-color: #2a2a2a;
+}
+
+body.dark .chat-input input[type="text"] {
+    background-color: #333;
+    color: #f0f2f5;
+    border-color: #555;
+}
+
+body.dark .chat-input button {
+    background-color: #444;
+    color: #f0f2f5;
+}
+
+body.dark .message.user {
+    background-color: #444;
+    color: #f0f2f5;
+}
+
+body.dark .message.agent {
+    background-color: #555;
+    color: #f0f2f5;
+}
+
+body.dark .message.user h5 {
+    color: #ffffff; /* White text color for user messages in dark mode */
+}
+
+body.dark .message.user .timestamp {
+    color: #000; /* Black color for user message timestamp in dark mode */
+}
+
+body.dark .message.user .name {
+    color: #ffffff; /* White color for user name in dark mode */
+}
+
+body.dark #live-agents-list div {
+    color: #000; /* Black text color for live agents in dark mode */
+}
+
+body.dark #live-agents-section h4 {
+    color: #000; /* Black text color for "Live Agents" in dark mode */
+}
+
+/* Toggle switch styles */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 25px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 25px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "☀️"; /* Sun icon for light mode */
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #351c15;
+}
+
+input:checked + .slider:before {
+    transform: translateX(25px);
+    content: "🌙"; /* Moon icon for dark mode */
+}
+
+#theme-toggle img {
+    cursor: pointer;
+    transition: opacity 0.3s ease;
 }

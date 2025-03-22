@@ -50,6 +50,12 @@
                 <h2>Chat</h2>
                 <div id="time-remaining" class="time-remaining"></div>
                 <div class="options">
+                    <div id="theme-toggle" style="margin-right: 10px; display: flex; align-items: center;">
+                        <label class="switch">
+                            <input type="checkbox" id="theme-switch">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
                     <button id="refresh-users">Refresh Users</button>
                     <button id="close-chat">Close Session</button>
                     <button id="admin-form-btn" style="display: none;">Admin Form</button>
@@ -189,6 +195,19 @@
         });
 
         document.addEventListener('DOMContentLoaded', generateCaptcha);
+
+        document.getElementById('theme-switch').addEventListener('change', (event) => {
+            const theme = event.target.checked ? 'dark' : 'light';
+            document.body.className = theme; // Apply the theme class to the body
+            localStorage.setItem('theme', theme); // Save the theme preference
+        });
+
+        // Apply saved theme on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.className = savedTheme;
+            document.getElementById('theme-switch').checked = savedTheme === 'dark';
+        });
     </script>
     <div id="live-agents-section" onclick="toggleLiveAgents()">
         <h4>Live Agents</h4>
