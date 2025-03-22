@@ -44,6 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         liveAgentsSection.style.display = 'block'; // Show live agents section after login
         updateLiveAgents(); // Fetch the latest live agents immediately
+
+        // Emit agent activity every 30 seconds
+        setInterval(() => {
+            socket.emit('agentActivity', agentName);
+        }, 30 * 1000);
     } else {
         liveAgentsSection.style.display = 'none'; // Hide live agents section on login page
     }

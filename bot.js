@@ -22,6 +22,8 @@ const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 const resend = new Resend('re_ZyECWkWh_5KKrMfAFf1JqkaXqiwNogJGh');
+const postmark = require('postmark'); // Add Postmark library
+const postmarkClient = new postmark.ServerClient('50146b14-0b3d-4e10-8ca8-209e32e03e1f'); // Replace with your Postmark server token
 
 mongoose.connect('mongodb+srv://admin:admin@cluster0.0katx.mongodb.net/?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('MongoDB connected'))
@@ -55,7 +57,8 @@ const loginSchema = new mongoose.Schema({
     name: String,
     email: String,
     password: String,
-    isAdmin: { type: Boolean, default: false }
+    isAdmin: { type: Boolean, default: false },
+    tempPassword: String // Temporary password field
 });
 
 const Login = mongoose.model('Login', loginSchema);
@@ -698,57 +701,50 @@ const liveAgents = new Set(); // Track logged-in live agents
 const agentSchema = new mongoose.Schema({
     name: String,
     email: String,
-    status: { type: String, default: 'logged out' } // Add status field
+    status: { type: String, default: 'logged out' },
+    lastActive: { type: Date, default: Date.now } // Track last active timestamp
 });
 
 const Agent = mongoose.model('Agent', agentSchema);
 
-// Update agent status on login
-io.on('connection', (socket) => {
-    console.log('Agent connected');
-
-    socket.on('agentLoggedIn', async (agentName) => {
-        socket.agentName = agentName; // Store agent name in the socket
-        await Agent.updateOne({ name: agentName }, { $set: { status: 'logged in' } }, { upsert: true });
-        const loggedInAgents = await Agent.find({ status: 'logged in' }, 'name');
-        io.emit('liveAgentsUpdated', loggedInAgents.map(agent => agent.name)); // Notify all clients
-    });
-
-    // Update agent status on disconnect
-    socket.on('disconnect', async () => {
-        if (socket.agentName) {
-            await Agent.updateOne({ name: socket.agentName }, { $set: { status: 'logged out' } });
-            const loggedInAgents = await Agent.find({ status: 'logged in' }, 'name');
-            io.emit('liveAgentsUpdated', loggedInAgents.map(agent => agent.name)); // Notify all clients
-        }
-    });
-});
-
-// Endpoint to fetch live agents
-app.get('/live-agents', async (req, res) => {
+// Periodically check for inactive agents
+setInterval(async () => {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    await Agent.updateMany(
+        { status: 'logged in', lastActive: { $lt: fiveMinutesAgo } },
+        { $set: { status: 'logged out' } }
+    );
     const loggedInAgents = await Agent.find({ status: 'logged in' }, 'name');
-    res.status(200).json(loggedInAgents.map(agent => agent.name));
-});
+    io.emit('liveAgentsUpdated', loggedInAgents.map(agent => agent.name)); // Notify all clients
+}, 60 * 1000); // Run every 1 minute
 
 io.on('connection', (socket) => {
     console.log('Agent connected');
 
-    // Handle agent login
     socket.on('agentLoggedIn', async (agentName) => {
         socket.agentName = agentName; // Store agent name in the socket
-        await Agent.updateOne({ name: agentName }, { $set: { status: 'logged in' } }, { upsert: true });
+        await Agent.updateOne(
+            { name: agentName },
+            { $set: { status: 'logged in', lastActive: new Date() } },
+            { upsert: true }
+        );
         const loggedInAgents = await Agent.find({ status: 'logged in' }, 'name');
         io.emit('liveAgentsUpdated', loggedInAgents.map(agent => agent.name)); // Notify all clients
     });
 
-    // Handle agent logout
+    socket.on('agentActivity', async (agentName) => {
+        await Agent.updateOne(
+            { name: agentName },
+            { $set: { lastActive: new Date() } }
+        );
+    });
+
     socket.on('agentLoggedOut', async (agentName) => {
         await Agent.updateOne({ name: agentName }, { $set: { status: 'logged out' } });
         const loggedInAgents = await Agent.find({ status: 'logged in' }, 'name');
         io.emit('liveAgentsUpdated', loggedInAgents.map(agent => agent.name)); // Notify all clients
     });
 
-    // Update agent status on disconnect
     socket.on('disconnect', async () => {
         if (socket.agentName) {
             await Agent.updateOne({ name: socket.agentName }, { $set: { status: 'logged out' } });
@@ -956,15 +952,31 @@ app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
         const user = await Login.findOne({ email: username });
-        if (user && await bcrypt.compare(password, user.password)) {
-            console.log(`User logged in: ${user.name}, Is Admin: ${user.isAdmin}`); // Log user and admin status
-            res.status(200).json({ name: user.name, isAdmin: user.isAdmin });
+        if (user) {
+            // Check if the provided password matches the main password or the temporary password
+            const isMainPasswordValid = await bcrypt.compare(password, user.password);
+            const isTempPasswordValid = user.tempPassword && await bcrypt.compare(password, user.tempPassword);
+
+            if (isMainPasswordValid) {
+                console.log(`User logged in with main password: ${user.name}`);
+                res.status(200).json({ name: user.name, isAdmin: user.isAdmin });
+            } else if (isTempPasswordValid) {
+                console.log(`User logged in with temporary password: ${user.name}`);
+                // Overwrite the main password with the temporary password
+                await Login.updateOne(
+                    { email: username },
+                    { $set: { password: user.tempPassword }, $unset: { tempPassword: "" } }
+                );
+                res.status(200).json({ name: user.name, isAdmin: user.isAdmin });
+            } else {
+                res.status(401).send('Invalid credentials.');
+            }
         } else {
-            res.status(401).send('Invalid credentials');
+            res.status(404).send('User not found.');
         }
     } catch (error) {
         console.error('Error during login:', error);
-        res.status(500).send('Internal server error');
+        res.status(500).send('Internal server error.');
     }
 });
 
@@ -1051,29 +1063,31 @@ app.post('/forget-password', async (req, res) => {
     try {
         const user = await Login.findOne({ email });
         if (user) {
-            const newPassword = Math.random().toString(36).slice(-8);
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
-            await Login.updateOne({ email }, { $set: { password: hashedPassword } });
+            const newPassword = Math.random().toString(36).slice(-8); // Generate a random password
+            const hashedTempPassword = await bcrypt.hash(newPassword, 10);
 
-            // Send email with new password using Resend API
+            // Save the temporary password in the database
+            await Login.updateOne({ email }, { $set: { tempPassword: hashedTempPassword } });
+
+            // Send the new password using Postmark
             try {
-                await resend.emails.send({
-                    from: 'info@ulspakistan.com',
-                    to: email,
-                    subject: 'Your New Password',
-                    html: `<p>Your new password is: <strong>${newPassword}</strong></p>`
+                await postmarkClient.sendEmail({
+                    From: 'info@ulspakistan.com',
+                    To: email,
+                    Subject: 'Your Temporary Password',
+                    HtmlBody: `<p>Your temporary password is: <strong>${newPassword}</strong></p><p>Please log in with this password to activate it.</p>`
                 });
-                res.status(200).send('Password reset successfully');
+                res.status(200).send('Temporary password sent successfully.');
             } catch (error) {
-                console.error('Error sending email:', error);
-                res.status(500).send('Failed to send email');
+                console.error('Error sending email via Postmark:', error);
+                res.status(500).send('Failed to send email.');
             }
         } else {
-            res.status(404).send('Email not found');
+            res.status(404).send('Email not found.');
         }
     } catch (error) {
-        console.error('Error resetting password:', error);
-        res.status(500).send('Internal server error');
+        console.error('Error during forget-password:', error);
+        res.status(500).send('Internal server error.');
     }
 });
 
