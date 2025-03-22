@@ -865,3 +865,76 @@ function toggleLiveAgents() {
         updateLiveAgents(); // Fetch and update the live agents list when expanded
     }
 }
+
+// Chart.js Graph Generation Functions
+function generateChatsGraph(data) {
+    new Chart(document.getElementById('chats-graph'), {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Chats',
+                data: data.values,
+                borderColor: 'blue',
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+function generateAgentRepliesGraph(data) {
+    new Chart(document.getElementById('agent-replies-graph'), {
+        type: 'bar',
+        data: {
+            labels: data.agents,
+            datasets: [{
+                label: 'Messages Sent',
+                data: data.values,
+                backgroundColor: 'green'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+function generateTrackingPieChart(data) {
+    new Chart(document.getElementById('tracking-pie-chart'), {
+        type: 'pie',
+        data: {
+            labels: ['With Tracking Numbers', 'Without Tracking Numbers'],
+            datasets: [{
+                data: data.values,
+                backgroundColor: ['orange', 'gray']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+function generateAgentLoginBarChart(data) {
+    new Chart(document.getElementById('agent-login-bar-chart'), {
+        type: 'bar',
+        data: {
+            labels: data.agents,
+            datasets: [{
+                label: 'Login Frequency',
+                data: data.values,
+                backgroundColor: 'purple'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}

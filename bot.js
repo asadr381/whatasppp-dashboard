@@ -1149,6 +1149,67 @@ app.get('/export-customers', async (req, res) => {
     }
 });
 
+app.get('/get-reports-data', async (req, res) => {
+    try {
+        // Fetch chat data for the last 30, 7, and 1 days
+        const now = new Date();
+        const chatsGraph = {
+            labels: ['Last 30 Days', 'Last 7 Days', 'Last 1 Day'],
+            values: [
+                await Chat.countDocuments({ timestamp: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } }),
+                await Chat.countDocuments({ timestamp: { $gte: new Date(now - 7 * 24 * 60 * 60 * 1000) } }),
+                await Chat.countDocuments({ timestamp: { $gte: new Date(now - 1 * 24 * 60 * 60 * 1000) } })
+            ]
+        };
+
+        // Fetch agent replies data
+        const agentReplies = await Chat.aggregate([
+            { $match: { sender: 'agent' } },
+            { $group: { _id: '$name', count: { $sum: 1 } } }
+        ]);
+        const agentRepliesData = {
+            agents: agentReplies.map(a => a._id),
+            values: agentReplies.map(a => a.count)
+        };
+
+        // Fetch tracking stats
+        const trackingStats = {
+            values: [
+                await Chat.countDocuments({ message: { $regex: /\b1Z[A-Z0-9]{16,18}\b/ } }),
+                await Chat.countDocuments({ message: { $not: { $regex: /\b1Z[A-Z0-9]{16,18}\b/ } } })
+            ]
+        };
+
+        // Fetch agent login frequency
+        const agentLoginStats = await Agent.aggregate([
+            { $group: { _id: '$name', count: { $sum: 1 } } }
+        ]);
+        const agentLoginData = {
+            agents: agentLoginStats.map(a => a._id),
+            values: agentLoginStats.map(a => a.count)
+        };
+
+        // Fetch total customers data for the last 30 days
+        const totalCustomersGraph = {
+            labels: ['Last 30 Days'],
+            values: [
+                await User.countDocuments({ lastTimestamp: { $gte: new Date(now - 30 * 24 * 60 * 60 * 1000) } })
+            ]
+        };
+
+        res.status(200).json({
+            chatsGraph,
+            agentReplies: agentRepliesData,
+            trackingStats,
+            agentLoginStats: agentLoginData,
+            totalCustomersGraph // Include new data
+        });
+    } catch (error) {
+        console.error('Error fetching reports data:', error);
+        res.status(500).send('Failed to fetch reports data');
+    }
+});
+
 http.listen(port, () => {
     console.log(`🚀 Server is running on http://localhost:${port}`);
 });

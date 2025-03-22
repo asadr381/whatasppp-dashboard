@@ -18,7 +18,70 @@
         .reset-button, .forget-button {
             padding: 5px 10px; /* Smaller size for reset and forget buttons */
         }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                max-width: 100%;
+            }
+        }
+
+        .charts-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chart-container {
+            display: none; /* Hide all charts by default */
+        }
+
+        .chart-container.active {
+            display: block; /* Show only the active chart */
+        }
+
+        .chart-arrow {
+            position: fixed; /* Fixed position to place arrows at the edges of the page */
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 10;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chart-arrow.left {
+            left: 10px; /* Position the left arrow at the left edge */
+        }
+
+        .chart-arrow.right {
+            right: 10px; /* Position the right arrow at the right edge */
+        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Add Chart.js library -->
 </head>
 <body>
     <div id="login-container" class="login-container">
@@ -61,6 +124,7 @@
                     <button id="admin-form-btn" style="display: none;">Admin Form</button>
                     <button id="view-users-btn" style="display: none;">View Users</button>
                     <button id="export-customers-btn" style="display: none;">Export Customers</button>
+                    <button id="show-reports-btn" style="display: none;">Show Reports</button>
                     <button class="logout-button" id="logout-button">Logout</button>
                 </div>
             </div>
@@ -136,6 +200,33 @@
         <h2>Saved Users</h2>
         <ul id="saved-users-list"></ul>
         <button type="button" id="close-view-users">Close</button>
+    </div>
+
+    <!-- Reports Modal -->
+    <div id="reports-modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Reports</h2>
+            <div class="charts-wrapper">
+                <button class="chart-arrow left" id="chart-left-arrow">←</button>
+                <div class="chart-container active">
+                    <canvas id="chats-graph"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="agent-replies-graph"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="tracking-pie-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="agent-login-bar-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="total-customers-graph"></canvas> <!-- New chart for total customers -->
+                </div>
+                <button class="chart-arrow right" id="chart-right-arrow">→</button>
+            </div>
+            <button id="close-reports-btn">Close</button>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -216,6 +307,7 @@
                 const userData = JSON.parse(loggedInUser);
                 if (userData.isAdmin) {
                     document.getElementById('export-customers-btn').style.display = 'block';
+                    document.getElementById('show-reports-btn').style.display = 'block';
                 }
             }
         });
@@ -233,6 +325,126 @@
                 })
                 .catch(error => console.error('Error exporting customers:', error));
         });
+
+        // Show Reports Button Logic
+        document.getElementById('show-reports-btn').addEventListener('click', () => {
+            fetch('/get-reports-data')
+                .then(response => response.json())
+                .then(data => {
+                    // Populate charts with data
+                    generateChatsGraph(data.chatsGraph);
+                    generateAgentRepliesGraph(data.agentReplies);
+                    generateTrackingPieChart(data.trackingStats);
+                    generateAgentLoginBarChart(data.agentLoginStats);
+                    generateTotalCustomersGraph(data.totalCustomersGraph); // Populate new chart
+                    document.getElementById('reports-modal').style.display = 'block';
+                })
+                .catch(error => console.error('Error fetching reports data:', error));
+        });
+
+        // Close Reports Modal
+        document.getElementById('close-reports-btn').addEventListener('click', () => {
+            document.getElementById('reports-modal').style.display = 'none';
+        });
+
+        // Chart.js Graph Generation Functions
+        function generateChatsGraph(data) {
+            new Chart(document.getElementById('chats-graph'), {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Chats',
+                        data: data.values,
+                        borderColor: 'blue',
+                        fill: false
+                    }]
+                }
+            });
+        }
+
+        function generateAgentRepliesGraph(data) {
+            new Chart(document.getElementById('agent-replies-graph'), {
+                type: 'bar',
+                data: {
+                    labels: data.agents,
+                    datasets: [{
+                        label: 'Messages Sent',
+                        data: data.values,
+                        backgroundColor: 'green'
+                    }]
+                }
+            });
+        }
+
+        function generateTrackingPieChart(data) {
+            new Chart(document.getElementById('tracking-pie-chart'), {
+                type: 'pie',
+                data: {
+                    labels: ['With Tracking Numbers', 'Without Tracking Numbers'],
+                    datasets: [{
+                        data: data.values,
+                        backgroundColor: ['orange', 'gray']
+                    }]
+                }
+            });
+        }
+
+        function generateAgentLoginBarChart(data) {
+            new Chart(document.getElementById('agent-login-bar-chart'), {
+                type: 'bar',
+                data: {
+                    labels: data.agents,
+                    datasets: [{
+                        label: 'Login Frequency',
+                        data: data.values,
+                        backgroundColor: 'purple'
+                    }]
+                }
+            });
+        }
+
+        function generateTotalCustomersGraph(data) {
+            new Chart(document.getElementById('total-customers-graph'), {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Total Customers',
+                        data: data.values,
+                        borderColor: 'orange',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        const chartContainers = document.querySelectorAll('.chart-container');
+        const leftArrow = document.getElementById('chart-left-arrow');
+        const rightArrow = document.getElementById('chart-right-arrow');
+        let currentChartIndex = 0;
+
+        function updateChartVisibility() {
+            chartContainers.forEach((container, index) => {
+                container.classList.toggle('active', index === currentChartIndex);
+            });
+        }
+
+        leftArrow.addEventListener('click', () => {
+            currentChartIndex = (currentChartIndex - 1 + chartContainers.length) % chartContainers.length;
+            updateChartVisibility();
+        });
+
+        rightArrow.addEventListener('click', () => {
+            currentChartIndex = (currentChartIndex + 1) % chartContainers.length;
+            updateChartVisibility();
+        });
+
+        updateChartVisibility(); // Initialize visibility
     </script>
     <div id="live-agents-section" onclick="toggleLiveAgents()">
         <h4>Live Agents</h4>
