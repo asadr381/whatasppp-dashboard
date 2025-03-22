@@ -24,6 +24,7 @@ const { Resend } = require('resend');
 const resend = new Resend('re_ZyECWkWh_5KKrMfAFf1JqkaXqiwNogJGh');
 const postmark = require('postmark'); // Add Postmark library
 const postmarkClient = new postmark.ServerClient('50146b14-0b3d-4e10-8ca8-209e32e03e1f'); // Replace with your Postmark server token
+const ExcelJS = require('exceljs'); // Add this library for Excel generation
 
 mongoose.connect('mongodb+srv://admin:admin@cluster0.0katx.mongodb.net/?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('MongoDB connected'))
@@ -1121,6 +1122,30 @@ app.post('/reset-hardcoded-admin-password', async (req, res) => {
     } catch (error) {
         console.error('Error resetting hardcoded admin password:', error);
         res.status(500).send('Failed to reset password.');
+    }
+});
+
+app.get('/export-customers', async (req, res) => {
+    try {
+        const users = await User.find({}, 'name senderId'); // Fetch name and senderId (number)
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Customers');
+
+        worksheet.columns = [
+            { header: 'Name', key: 'name', width: 30 },
+            { header: 'Number', key: 'senderId', width: 20 }
+        ];
+
+        worksheet.addRows(users);
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=customers.xlsx');
+
+        await workbook.xlsx.write(res);
+        res.end();
+    } catch (error) {
+        console.error('Error exporting customers:', error);
+        res.status(500).send('Failed to export customers');
     }
 });
 

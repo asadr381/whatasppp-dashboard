@@ -60,6 +60,7 @@
                     <button id="close-chat">Close Session</button>
                     <button id="admin-form-btn" style="display: none;">Admin Form</button>
                     <button id="view-users-btn" style="display: none;">View Users</button>
+                    <button id="export-customers-btn" style="display: none;">Export Customers</button>
                     <button class="logout-button" id="logout-button">Logout</button>
                 </div>
             </div>
@@ -207,6 +208,30 @@
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.body.className = savedTheme;
             document.getElementById('theme-switch').checked = savedTheme === 'dark';
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loggedInUser = sessionStorage.getItem('loggedInUser');
+            if (loggedInUser) {
+                const userData = JSON.parse(loggedInUser);
+                if (userData.isAdmin) {
+                    document.getElementById('export-customers-btn').style.display = 'block';
+                }
+            }
+        });
+
+        document.getElementById('export-customers-btn').addEventListener('click', () => {
+            fetch('/export-customers')
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'customers.xlsx';
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                })
+                .catch(error => console.error('Error exporting customers:', error));
         });
     </script>
     <div id="live-agents-section" onclick="toggleLiveAgents()">
