@@ -1,0 +1,1269 @@
+/* General styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+.container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+/* Sidebar styles */
+.sidebar {
+    width: 30%;
+    background-color: #fff;
+    border-right: 1px solid #ccc;
+    overflow-y: auto;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar h2 {
+    background-color: #351c15;
+    color: white;
+    padding: 15px;
+    margin: 0;
+    text-align: center;
+    font-size: 1.5em;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar ul li {
+    position: relative;
+    padding: 15px;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.sidebar ul li .notification {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    padding: 5px 10px;
+    font-size: 0.8em;
+}
+
+.sidebar ul li:hover {
+    background-color: #f4f4f9;
+}
+
+.sidebar ul li.selected {
+    background-color: #ffc400;
+    border-left: 5px solid #351c15;
+}
+
+.sidebar ul li.active {
+    background-color: #ffc400;
+    border-left: 5px solid #351c15;
+}
+
+/* Blocked user styles */
+.sidebar ul li.blocked {
+    background-color: #d3d3d3;
+    color: #888;
+    cursor: not-allowed;
+}
+
+/* Chat box styles */
+.chat-box {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Chat header styles */
+.chat-header {
+    background-color: #351c15;
+    color: white;
+    padding: 15px;
+    text-align: left;
+    font-size: 1.5em;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    border-radius: 10px 10px 0 0;
+    position: relative;
+    flex-wrap: wrap; /* Allow wrapping of elements */
+}
+
+.chat-header .logo {
+    width: auto; /* Maintain aspect ratio */
+    height: 50px; /* Adjust height for better visibility */
+    max-width: 100%; /* Ensure it doesn't exceed container width */
+    margin-right: 15px; /* Add spacing between logo and text */
+}
+
+.chat-header h2 {
+    flex: 1;
+    margin: 0;
+    font-size: 1.8em; /* Increase font size slightly */
+    line-height: 1.2; /* Adjust line height for better alignment */
+}
+
+.chat-header .time-remaining {
+    position: static; /* Remove absolute positioning */
+    margin-left: auto; /* Push to the right */
+    margin-right: auto; /* Center horizontally */
+    order: 1; /* Ensure it appears before the options on small screens */
+}
+
+.chat-header .options {
+    display: flex;
+    gap: 10px;
+    order: 2; /* Ensure it appears after the timer on small screens */
+    margin-left: auto; /* Push to the right */
+}
+
+.chat-header .options button {
+    background-color: #351c15;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.chat-header .options button:hover {
+    background-color: #5a2a1e;
+    transform: scale(1.05);
+}
+
+.chat-header .options button:active {
+    transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+    .chat-header {
+        flex-direction: column; /* Stack elements vertically on small screens */
+        align-items: flex-start; /* Align items to the start */
+    }
+
+    .chat-header .time-remaining {
+        margin: 10px 0; /* Add margin for spacing */
+    }
+
+    .chat-header .options {
+        margin-left: 0; /* Reset margin */
+        width: 100%; /* Full width */
+        justify-content: space-between; /* Distribute buttons evenly */
+    }
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    border-bottom: 1px solid #ccc;
+    background-color: #e5ddd5;
+    animation: fadeIn 1s;
+}
+
+.chat-input {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+    background-color: #f0f2f5;
+    align-items: center;
+    border-radius: 0 0 10px 10px;
+}
+
+.chat-input input[type="text"] {
+    flex: 1;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    margin-right: 10px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.chat-input input[type="text"]:focus {
+    border-color: #4285F4;
+}
+
+.chat-input button {
+    padding: 15px 20px;
+    background-color: #351c15;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 25px;
+    transition: background-color 0.3s;
+}
+
+.chat-input button:hover {
+    background-color: #5a2a1e;
+}
+
+/* Quick replies styles */
+.quick-replies {
+    display: flex; /* Use flexbox for inline layout */
+    flex-wrap: wrap; /* Allow wrapping to the next line if needed */
+    gap: 10px; /* Add spacing between quick replies */
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f0f2f5;
+    border-top: 1px solid #ccc;
+    border-radius: 0 0 10px 10px;
+}
+
+.quick-reply {
+    display: inline-flex; /* Ensure the button and remove icon are inline */
+    align-items: center;
+    justify-content: space-between;
+    background-color: #351c15;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.quick-reply:hover {
+    background-color: #5a2a1e;
+}
+
+.quick-reply .remove-reply {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+#add-quick-reply-form {
+    display: flex;
+    gap: 10px;
+}
+
+#add-quick-reply-form input {
+    flex: 1;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#add-quick-reply-form button {
+    padding: 5px 10px;
+    background-color: #351c15;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#add-quick-reply-form button:hover {
+    background-color: #5a2a1e;
+}
+
+/* Message styles */
+.message {
+    margin-bottom: 15px;
+    padding: 15px; /* Increased padding for better spacing */
+    border-radius: 25px;
+    display: inline-block; /* Use inline-block to adjust width based on content */
+    max-width: 80%; /* Set a maximum width to prevent overly wide messages */
+    word-wrap: break-word;
+    animation: slideIn 0.5s ease-in-out;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+    position: relative; /* For positioning elements inside the message */
+}
+
+.message .message-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    margin-bottom: 5px;
+}
+
+.message.user .message-header {
+    color: #000; /* Black color for user message header */
+}
+
+.message.agent .message-header {
+    color: #fff; /* White color for agent message header */
+}
+
+.message.user {
+    background-color: #ffc400;
+    align-self: flex-start;
+    text-align: left;
+    float: left; /* Align user messages to the left */
+    clear: both; /* Ensure messages do not overlap */
+}
+
+.message.agent {
+    background-color: #351c15;
+    align-self: flex-end;
+    border: 1px solid #ccc;
+    text-align: right;
+    color: #fff8f8;
+    float: right; /* Align agent messages to the right */
+    clear: both; /* Ensure messages do not overlap */
+}
+
+.message .timestamp {
+    display: block;
+    font-size: 0.8em;
+    margin-bottom: 5px;
+    position: static; /* Change to static positioning */
+    text-align: right; /* Align to the right */
+}
+
+.message.user .timestamp {
+    color: #000;
+    font-size: revert; /* Black color for user message timestamp */
+}
+
+.message.agent .timestamp {
+    color: #fff8f8;
+    font-size: revert; /* White color for agent message timestamp */
+}
+
+.message img {
+    max-width: 200px;
+    border-radius: 8px;
+    margin-top: 5px;
+    cursor: pointer; /* Add cursor pointer for images */
+    transition: transform 0.3s; /* Smooth zoom effect */
+}
+
+.message img:hover {
+    transform: scale(1.1); /* Zoom effect on hover */
+}
+
+.message h5 {
+    margin: 0; /* Remove default margin */
+    font-size: 1em; /* Adjust font size */
+    line-height: 1.5; /* Improve readability */
+}
+
+.message.user h5 {
+    color: #333; /* Darker text color for user messages */
+}
+
+.message.agent h5 {
+    color: #fff8f8; /* Lighter text color for agent messages */
+}
+
+/* Tracking button styles */
+.tracking-button {
+    background-color: #351c15;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-left: 10px;
+    transition: background-color 0.3s;
+}
+
+.tracking-button:hover {
+    background-color: #ffc400;
+}
+
+/* Email button styles */
+.email-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-left: 10px;
+    transition: background-color 0.3s;
+}
+
+.email-button:hover {
+    background-color: #218838;
+}
+
+/* Footer styles */
+footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+}
+
+/* Login styles */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+    background-color: #f0f2f5;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 1s ease-in-out;
+    flex-direction: column; /* Center elements vertically */
+    text-align: center;
+}
+
+.login-container h2 {
+    margin-bottom: 20px;
+    font-size: 2em;
+    color: #333;
+}
+
+.login-container label {
+    margin-top: 10px;
+    font-size: 1em;
+    color: #333;
+}
+
+.login-container input {
+    width: 20%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    text-align: center; /* Center text inside input fields */
+}
+
+.login-button, .reset-button, .forget-button {
+    background-color: #4285F4;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.3s;
+    margin-top: 10px; /* Add space between buttons */
+}
+
+.login-button:hover, .reset-button:hover, .forget-button:hover {
+    background-color: #357ae8;
+    transform: scale(1.05);
+}
+
+.logout-button {
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.logout-button:hover {
+    background-color: #c9302c;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    padding-top: 60px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.9);
+}
+
+.modal-content {
+    margin: auto;
+    display: block;
+    width: 80%;
+    max-width: 700px;
+}
+
+.modal-content, #caption {
+    animation-name: zoom;
+    animation-duration: 0.6s;
+}
+
+@keyframes zoom {
+    from {transform: scale(0)}
+    to {transform: scale(1)}
+}
+
+.close {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.close:hover,
+.close:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Ticket form styles */
+#ticket-form-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+#ticket-form {
+    display: flex;
+    flex-direction: column;
+}
+
+#ticket-form label {
+    margin-top: 10px;
+}
+
+#ticket-form input,
+#ticket-form select,
+#ticket-form textarea {
+    margin-top: 5px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#ticket-form button {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#ticket-form button:hover {
+    background-color: #0056b3;
+}
+
+/* Admin form styles */
+#admin-form-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    animation: slideIn 0.5s ease-in-out;
+}
+
+#admin-form {
+    display: flex;
+    flex-direction: column;
+}
+
+#admin-form label {
+    margin-top: 10px;
+}
+
+#admin-form input {
+    margin-top: 5px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+#admin-form button {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#admin-form button:hover {
+    background-color: #0056b3;
+}
+
+/* View users modal styles */
+#view-users-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    animation: slideIn 0.5s ease-in-out;
+}
+
+#view-users-container h2 {
+    margin-bottom: 20px;
+}
+
+#view-users-container ul {
+    list-style: none;
+    padding: 0;
+}
+
+#view-users-container ul li {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+#view-users-container button {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#view-users-container button:hover {
+    background-color: #c9302c;
+}
+
+/* User list buttons */
+.user-list-buttons {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.user-list-buttons button {
+    padding: 5px 10px;
+    background-color: #351c15;
+    border: none;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.user-list-buttons button:hover {
+    background-color: #ffc400;
+}
+
+.user-list-buttons .block-button {
+    background-color: #d9534f;
+}
+
+.user-list-buttons .block-button:hover {
+    background-color: #c9302c;
+}
+
+.user-list-buttons .unblock-button {
+    background-color: #5cb85c;
+}
+
+.user-list-buttons .unblock-button:hover {
+    background-color: #4cae4c;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translate(-50%, -60%); }
+    to { transform: translate(-50%, -50%); }
+}
+
+/* Timer display styles */
+.reply-timer {
+    font-size: 16px;
+    color: rgb(255, 255, 255);
+    margin-left: 20px;
+    font-weight: bold;
+}
+
+.timer-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(90deg, #351c15, #ffc400);
+    padding: 5px 10px;
+    border-radius: 25px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.clock-image {
+    width: 24px;
+    height: 24px;
+    animation: rotate 60s linear infinite;
+}
+
+.clock-image.expired {
+    animation: none;
+}
+
+.timer {
+    font-size: 16px;
+    color: #f3f3f3;
+    font-weight: bold;
+    animation: pulse 1s infinite;
+}
+
+.timer.expired {
+    color: rgb(255, 255, 255);
+    animation: none;
+}
+
+.clock {
+    position: relative;
+    width: 30px; /* Increased size */
+    height: 30px; /* Increased size */
+    border: 3px solid #fff; /* Changed to white for better visibility */
+    border-radius: 50%;
+    background-color: #ffc400;
+    animation: rotate 60s linear infinite;
+    margin-right: 5px; /* Reduced margin */
+}
+
+.clock.expired {
+    border-color: rgb(255, 255, 255);
+    animation: none;
+}
+
+.hand {
+    position: absolute;
+    width: 50%;
+    height: 2px;
+    background-color: #fff; /* Changed to white for better visibility */
+    top: 50%;
+    left: 50%;
+    transform-origin: 0% 50%;
+    transform: rotate(0deg);
+    transition: transform 0.5s ease-in-out;
+}
+
+.clock.expired .hand {
+    background-color: rgb(197, 197, 197);
+}
+
+.hour-hand {
+    height: 3px;
+    width: 30%;
+    background-color: #4285F4; /* Make the hour hand more visible */
+}
+
+.minute-hand {
+    height: 2px;
+    width: 40%;
+    background-color: #4285F4; /* Make the minute hand more visible */
+}
+
+.second-hand {
+    height: 1px;
+    width: 45%;
+    background-color: #f00; /* Make the second hand more visible */
+}
+
+.timer {
+    font-size: 16px;
+    color: #351c15;
+    font-weight: bold;
+    animation: pulse 1s infinite;
+}
+
+.timer.expired {
+    color: #351c15;
+    animation: none;
+}
+
+/* Reset and Forget Password styles */
+.reset-container, .forget-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+    background-color: #f0f2f5;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 1s ease-in-out;
+    flex-direction: column; /* Center elements vertically */
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.reset-container h2, .forget-container h2 {
+    margin-bottom: 20px;
+    font-size: 2em;
+    color: #333;
+    animation: bounceIn 1s;
+}
+
+.reset-container label, .forget-container label {
+    margin-top: 10px;
+    font-size: 1em;
+    color: #333;
+}
+
+.reset-container input, .forget-container input {
+
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    text-align: center; /* Center text inside input fields */
+    transition: border-color 0.3s;
+}
+
+.reset-container input:focus, .forget-container input:focus {
+    border-color: #4285F4;
+}
+
+.reset-button, .forget-button {
+    background-color: #4285F4;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.3s;
+    margin-top: 10px; /* Add space between buttons */
+}
+
+.reset-button:hover, .forget-button:hover {
+    background-color: #357ae8;
+    transform: scale(1.05);
+}
+
+/* Logo styles */
+.logo {
+    width: auto; /* Maintain aspect ratio */
+    height: 60px; /* Set a consistent height */
+    max-width: 100%; /* Ensure it doesn't exceed container width */
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Live agents section styles */
+#live-agents-section {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: #fff;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+#live-agents-section h4 {
+    margin: 0;
+    cursor: pointer;
+}
+
+#live-agents-list {
+    margin-top: 10px;
+    display: none; /* Initially hidden */
+}
+
+#live-agents-section.expanded #live-agents-list {
+    display: block; /* Show list when expanded */
+}
+
+#refresh-live-agents {
+    display: none; /* Initially hidden */
+    background: none;
+    border: none;
+    margin-bottom: 10px; /* Add spacing below the button */
+}
+
+#live-agents-section.expanded #refresh-live-agents {
+    display: inline-block; /* Show when expanded */
+}
+
+#refresh-live-agents img {
+    transition: transform 0.3s;
+}
+
+#refresh-live-agents img:hover {
+    transform: rotate(90deg); /* Rotate on hover */
+}
+
+#refresh-live-agents img {
+    transition: transform 0.3s;
+}
+
+#refresh-live-agents img:hover {
+    transform: rotate(90deg); /* Rotate on hover */
+}
+
+/* Pop-up message styles */
+.popup-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #fff;
+    border-left: 5px solid;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    z-index: 1000;
+    animation: fadeIn 0.5s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.popup-container.info {
+    border-color: #4285F4;
+}
+
+.popup-container.success {
+    border-color: #28a745;
+}
+
+.popup-container.warning {
+    border-color: #ffc107;
+}
+
+.popup-container.error {
+    border-color: #dc3545;
+}
+
+.popup-container p {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.popup-close-button {
+    background-color: transparent;
+    border: none;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.popup-close-button:hover {
+    color: #000;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Modal alert styles */
+.modal-alert {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    z-index: 1000;
+    width: 300px;
+    text-align: center;
+}
+
+.modal-content p {
+    margin-bottom: 20px;
+    font-size: 16px;
+    color: #333;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.primary-button {
+    background-color: #351c15;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.primary-button:hover {
+    background-color: #ffc400;
+}
+
+.secondary-button {
+    background-color: #6c757d;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.secondary-button:hover {
+    background-color: #5a6268;
+}
+
+/* Light mode styles */
+body.light {
+    background-color: #f0f2f5;
+    color: #333;
+}
+
+/* Dark mode styles */
+body.dark {
+    background-color: #121212;
+    color: #f0f2f5;
+}
+
+body.dark .sidebar {
+    background-color: #1e1e1e;
+    color: #f0f2f5;
+}
+
+body.dark .chat-box {
+    background-color: #1e1e1e;
+    color: #f0f2f5;
+}
+
+body.dark .chat-header {
+    background-color: #333;
+    color: #f0f2f5;
+}
+
+body.dark .chat-messages {
+    background-color: #2a2a2a;
+}
+
+body.dark .chat-input input[type="text"] {
+    background-color: #333;
+    color: #f0f2f5;
+    border-color: #555;
+}
+
+body.dark .chat-input button {
+    background-color: #444;
+    color: #f0f2f5;
+}
+
+body.dark .message.user {
+    background-color: #444;
+    color: #f0f2f5;
+}
+
+body.dark .message.agent {
+    background-color: #555;
+    color: #f0f2f5;
+}
+
+body.dark .message.user h5 {
+    color: #ffffff; /* White text color for user messages in dark mode */
+}
+
+body.dark .message.user .timestamp {
+    color: #000; /* Black color for user message timestamp in dark mode */
+}
+
+body.dark .message.user .name {
+    color: #ffffff; /* White color for user name in dark mode */
+}
+
+body.dark #live-agents-list div {
+    color: #000; /* Black text color for live agents in dark mode */
+}
+
+body.dark #live-agents-section h4 {
+    color: #000; /* Black text color for "Live Agents" in dark mode */
+}
+
+/* Toggle switch styles */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 25px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ffc400;
+    transition: 0.4s;
+    border-radius: 25px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "☀️"; /* Sun icon for light mode */
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #351c15;
+}
+
+input:checked + .slider:before {
+    transform: translateX(25px);
+    content: "🌙"; /* Moon icon for dark mode */
+}
+
+#theme-toggle img {
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+/* Reports modal styles */
+#reports-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    width: 80%;
+    max-width: 800px;
+}
+
+#reports-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+#reports-modal canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+#close-reports-btn {
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+#close-reports-btn:hover {
+    background-color: #c9302c;
+}
+
+/* Charts wrapper and container styles */
+.charts-wrapper {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory; /* Enable snapping */
+    gap: 20px;
+    padding: 10px;
+}
+
+.chart-container {
+    flex: 0 0 100%; /* Show one chart at a time */
+    max-width: 100%;
+    scroll-snap-align: center; /* Center the chart in view */
+}

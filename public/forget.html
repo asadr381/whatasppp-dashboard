@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forget Password</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        .forget-button {
+            background-color: #351c15;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="forget-container" class="forget-container animate__animated animate__fadeIn">
+        <img src="UPS.png" alt="Logo" class="logo">
+        <h2>Forget Password</h2>
+        <label for="forget-email">Email</label>
+        <input type="email" id="forget-email" placeholder="Enter your email" required>
+        <div id="captcha-container">
+            <canvas id="captcha" width="150" height="50"></canvas>
+            <button id="refresh-captcha" type="button">↻</button>
+        </div>
+        <input type="text" id="captcha-input" placeholder="Enter CAPTCHA" required>
+        <button class="forget-button" id="forget-submit-button">Submit</button>
+    </div>
+    <script src="forget.js"></script>
+    <script>
+        function generateCaptcha() {
+            const canvas = document.getElementById('captcha');
+            const ctx = canvas.getContext('2d');
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const captchaText = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+            sessionStorage.setItem('captcha', captchaText);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '30px Arial';
+            ctx.fillStyle = '#000';
+            ctx.fillText(captchaText, 10, 35);
+        }
+
+        document.getElementById('refresh-captcha').addEventListener('click', generateCaptcha);
+
+        document.getElementById('forget-submit-button').addEventListener('click', () => {
+            const userCaptcha = document.getElementById('captcha-input').value;
+            const generatedCaptcha = sessionStorage.getItem('captcha');
+            if (userCaptcha !== generatedCaptcha) {
+                alert('Invalid CAPTCHA. Please try again.');
+                generateCaptcha();
+                return;
+            }
+            // ...existing forget password logic...
+        });
+
+        document.addEventListener('DOMContentLoaded', generateCaptcha);
+    </script>
+</body>
+</html>

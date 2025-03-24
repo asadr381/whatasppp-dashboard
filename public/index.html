@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Bot Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .login-button, .reset-button, .forget-button {
+            background-color: #351c15;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        .reset-button, .forget-button {
+            padding: 5px 10px; /* Smaller size for reset and forget buttons */
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                max-width: 100%;
+            }
+        }
+
+        .charts-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chart-container {
+            display: none; /* Hide all charts by default */
+        }
+
+        .chart-container.active {
+            display: block; /* Show only the active chart */
+        }
+
+        .chart-arrow {
+            position: fixed; /* Fixed position to place arrows at the edges of the page */
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 10;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chart-arrow.left {
+            left: 10px; /* Position the left arrow at the left edge */
+        }
+
+        .chart-arrow.right {
+            right: 10px; /* Position the right arrow at the right edge */
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Add Chart.js library -->
+</head>
+<body>
+    <div id="login-container" class="login-container">
+        <img src="UPS.png" alt="Logo" class="logo">
+        <h2>Login to WhatsApp Dashboard</h2>
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter your username">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter your password">
+        <div id="captcha-container">
+            <canvas id="captcha" width="150" height="50"></canvas>
+            <button id="refresh-captcha" type="button">↻</button>
+        </div>
+        <input type="text" id="captcha-input" placeholder="Enter CAPTCHA" required>
+        <button class="login-button" id="login-button">Login</button>
+        <button class="reset-button" id="reset-button">Change Password</button>
+        <button class="forget-button" id="forget-button">Forget Password</button>
+    </div>
+    <div id="app" class="container" style="display: none;">
+        <div class="sidebar">
+            <h2>Customers</h2>
+            <ul id="users"></ul>
+            <button id="delete-chat" style="display: none;">Delete Chat</button>
+            <button id="export-chat" style="display: none;">Export Chat</button>
+        </div>
+        <div class="chat-box">
+            <div class="chat-header">
+                <img src="UPS.png" alt="Logo" class="logo">
+                <h2>Chat</h2>
+                <div id="time-remaining" class="time-remaining"></div>
+                <div class="options">
+                    <div id="theme-toggle" style="margin-right: 10px; display: flex; align-items: center;">
+                        <label class="switch">
+                            <input type="checkbox" id="theme-switch">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <button id="refresh-users">Refresh Users</button>
+                    <button id="close-chat">Close Session</button>
+                    <button id="admin-form-btn" style="display: none;">Admin Form</button>
+                    <button id="view-users-btn" style="display: none;">View Users</button>
+                    <button id="export-customers-btn" style="display: none;">Export Customers</button>
+                    <button id="show-reports-btn" style="display: none;">Show Reports</button>
+                    <button class="logout-button" id="logout-button">Logout</button>
+                </div>
+            </div>
+            <div class="chat-messages" id="messages"></div>
+            <div class="chat-input">
+                <input type="text" id="message-input" placeholder="Type a message...">
+                <button id="send-button">Send</button>
+                <button id="open-ticket-btn">Open Ticket</button>
+                <input type="hidden" id="last-message-timestamp">
+            </div>
+            <div class="quick-replies">
+                <div id="quick-replies-list">
+                    <!-- Existing quick replies will be dynamically loaded here -->
+                </div>
+                <form id="add-quick-reply-form">
+                    <input type="text" id="new-quick-reply" placeholder="Add a new quick reply..." required>
+                    <button type="submit">Add</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="chatContainer" style=" max-height: 500px; overflow-y: auto;">
+        <!-- Messages will be displayed here -->
+    </div>
+    <audio id="notification-sound" src="notification.mp3" preload="auto"></audio>
+    <audio id="agent-notification-sound" src="agent-notification.mp3" preload="auto"></audio>
+
+    <!-- Modal for image popup -->
+    <div id="imageModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImage">
+        <div id="caption"></div>
+    </div>
+
+    <div id="ticket-form-container" style="display: none;">
+        <form id="ticket-form">
+            <h2>Create Ticket</h2>
+
+            <label for="customerName">Customer Name:</label>
+            <input type="text" id="customerName" name="customerName" required>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+            <label for="mobile">Mobile:</label>
+            <input type="text" id="mobile" name="mobile" required>
+            <label for="ticketType">Request Type:</label>
+            <select id="ticketType" name="ticketType" required>
+                <option value="1">Commodity Information</option>
+                <option value="2">Customs Requirements / Paper Work</option>
+                <option value="3">Product Inquiry</option>
+                <option value="4">Transit Time</option>
+                <option value="5">Corporate or Business Account</option>
+                <option value="6">Rate Inquiry</option>
+            </select>
+            <label for="trackingNumber">Tracking Number (Optional):</label>
+            <input type="text" id="trackingNumber" name="trackingNumber">
+            <label for="accountNumber">Account Number (Optional):</label>
+            <input type="text" id="accountNumber" name="accountNumber">
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" required></textarea>
+            <button type="submit">Submit</button>
+            <button type="button" id="close-ticket-form">Close</button>
+        </form>
+    </div>
+
+    <!-- Admin Form Modal -->
+    <div id="admin-form-container" style="display: none;">
+        <form id="admin-form">
+            <h2>Admin Panel</h2>
+            <label for="userName">User Name:</label>
+            <input type="text" id="userName" name="userName" required>
+            <label for="userEmail">User Email:</label>
+            <input type="email" id="userEmail" name="userEmail" required>
+            <label for="userPassword">User Password:</label>
+            <input type="password" id="userPassword" name="userPassword" required>
+            <button type="button" id="add-user-btn">Add User</button>
+            <button type="button" id="close-admin-form">Close</button>
+        </form>
+    </div>
+
+    <!-- View Users Modal -->
+    <div id="view-users-container" style="display: none;">
+        <h2>Saved Users</h2>
+        <ul id="saved-users-list"></ul>
+        <button type="button" id="close-view-users">Close</button>
+    </div>
+
+    <!-- Reports Modal -->
+    <div id="reports-modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Reports</h2>
+            <div class="charts-wrapper">
+                <button class="chart-arrow left" id="chart-left-arrow">←</button>
+                <div class="chart-container active">
+                    <canvas id="chats-graph"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="agent-replies-graph"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="tracking-pie-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="agent-login-bar-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="total-customers-graph"></canvas> <!-- New chart for total customers -->
+                </div>
+                <button class="chart-arrow right" id="chart-right-arrow">→</button>
+            </div>
+            <button id="close-reports-btn">Close</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+    <script>
+        document.getElementById('reset-button').addEventListener('click', () => {
+            window.location.href = 'reset.html';
+        });
+        document.getElementById('forget-button').addEventListener('click', () => {
+            window.location.href = 'forget.html';
+        });
+
+        function toggleLiveAgents() {
+            const section = document.getElementById('live-agents-section');
+            const refreshButton = document.getElementById('refresh-live-agents');
+            section.classList.toggle('expanded');
+            refreshButton.style.display = section.classList.contains('expanded') ? 'inline-block' : 'none';
+        }
+
+        function updateLiveAgents(event) {
+            event.stopPropagation(); // Prevent triggering the toggle
+            // Fetch and update live agents logic here
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loggedInUser = sessionStorage.getItem('loggedInUser');
+            const liveAgentsSection = document.getElementById('live-agents-section');
+            if (loggedInUser) {
+                liveAgentsSection.style.display = 'block'; // Show live agents section after login
+            } else {
+                liveAgentsSection.style.display = 'none'; // Hide live agents section on login page
+            }
+        });
+
+        function generateCaptcha() {
+            const canvas = document.getElementById('captcha');
+            const ctx = canvas.getContext('2d');
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const captchaText = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+            sessionStorage.setItem('captcha', captchaText);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '30px Arial';
+            ctx.fillStyle = '#000';
+            ctx.fillText(captchaText, 10, 35);
+        }
+
+        document.getElementById('refresh-captcha').addEventListener('click', generateCaptcha);
+
+        document.getElementById('login-button').addEventListener('click', () => {
+            const userCaptcha = document.getElementById('captcha-input').value;
+            const generatedCaptcha = sessionStorage.getItem('captcha');
+            if (userCaptcha !== generatedCaptcha) {
+                alert('Invalid CAPTCHA. Please try again.');
+                generateCaptcha();
+                return;
+            }
+            // ...existing login logic...
+        });
+
+        document.addEventListener('DOMContentLoaded', generateCaptcha);
+
+        document.getElementById('theme-switch').addEventListener('change', (event) => {
+            const theme = event.target.checked ? 'dark' : 'light';
+            document.body.className = theme; // Apply the theme class to the body
+            localStorage.setItem('theme', theme); // Save the theme preference
+        });
+
+        // Apply saved theme on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.className = savedTheme;
+            document.getElementById('theme-switch').checked = savedTheme === 'dark';
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loggedInUser = sessionStorage.getItem('loggedInUser');
+            if (loggedInUser) {
+                const userData = JSON.parse(loggedInUser);
+                if (userData.isAdmin) {
+                    document.getElementById('export-customers-btn').style.display = 'block';
+                    document.getElementById('show-reports-btn').style.display = 'block';
+                }
+            }
+        });
+
+        document.getElementById('export-customers-btn').addEventListener('click', () => {
+            fetch('/export-customers')
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'customers.xlsx';
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                })
+                .catch(error => console.error('Error exporting customers:', error));
+        });
+
+        // Store chart instances to destroy them before re-creating
+        let chatsGraphInstance = null;
+        let agentRepliesGraphInstance = null;
+        let trackingPieChartInstance = null;
+        let agentLoginBarChartInstance = null;
+        let totalCustomersGraphInstance = null;
+
+        function generateChatsGraph(data) {
+            if (chatsGraphInstance) chatsGraphInstance.destroy(); // Destroy existing chart
+            chatsGraphInstance = new Chart(document.getElementById('chats-graph'), {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Chats',
+                        data: data.values,
+                        borderColor: 'blue',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function generateAgentRepliesGraph(data) {
+            if (agentRepliesGraphInstance) agentRepliesGraphInstance.destroy(); // Destroy existing chart
+            agentRepliesGraphInstance = new Chart(document.getElementById('agent-replies-graph'), {
+                type: 'bar',
+                data: {
+                    labels: data.agents,
+                    datasets: [{
+                        label: 'Messages Sent',
+                        data: data.values,
+                        backgroundColor: 'green'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function generateTrackingPieChart(data) {
+            if (trackingPieChartInstance) trackingPieChartInstance.destroy(); // Destroy existing chart
+            trackingPieChartInstance = new Chart(document.getElementById('tracking-pie-chart'), {
+                type: 'pie',
+                data: {
+                    labels: ['With Tracking Numbers', 'Without Tracking Numbers'],
+                    datasets: [{
+                        data: data.values,
+                        backgroundColor: ['orange', 'gray']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function generateAgentLoginBarChart(data) {
+            if (agentLoginBarChartInstance) agentLoginBarChartInstance.destroy(); // Destroy existing chart
+            agentLoginBarChartInstance = new Chart(document.getElementById('agent-login-bar-chart'), {
+                type: 'bar',
+                data: {
+                    labels: data.agents,
+                    datasets: [{
+                        label: 'Login Frequency',
+                        data: data.values,
+                        backgroundColor: 'purple'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function generateTotalCustomersGraph(data) {
+            if (totalCustomersGraphInstance) totalCustomersGraphInstance.destroy(); // Destroy existing chart
+            totalCustomersGraphInstance = new Chart(document.getElementById('total-customers-graph'), {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Total Customers',
+                        data: data.values,
+                        borderColor: 'orange',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        document.getElementById('show-reports-btn').addEventListener('click', () => {
+            fetch('/get-reports-data')
+                .then(response => response.json())
+                .then(data => {
+                    // Populate charts with data
+                    generateChatsGraph(data.chatsGraph);
+                    generateAgentRepliesGraph(data.agentReplies);
+                    generateTrackingPieChart(data.trackingStats);
+                    generateAgentLoginBarChart(data.agentLoginStats);
+                    generateTotalCustomersGraph(data.totalCustomersGraph); // Populate new chart
+                    document.getElementById('reports-modal').style.display = 'block';
+                })
+                .catch(error => console.error('Error fetching reports data:', error));
+        });
+
+        // Close Reports Modal
+        document.getElementById('close-reports-btn').addEventListener('click', () => {
+            document.getElementById('reports-modal').style.display = 'none';
+        });
+
+        const chartContainers = document.querySelectorAll('.chart-container');
+        const leftArrow = document.getElementById('chart-left-arrow');
+        const rightArrow = document.getElementById('chart-right-arrow');
+        let currentChartIndex = 0;
+
+        function updateChartVisibility() {
+            chartContainers.forEach((container, index) => {
+                container.classList.toggle('active', index === currentChartIndex);
+            });
+        }
+
+        leftArrow.addEventListener('click', () => {
+            currentChartIndex = (currentChartIndex - 1 + chartContainers.length) % chartContainers.length;
+            updateChartVisibility();
+        });
+
+        rightArrow.addEventListener('click', () => {
+            currentChartIndex = (currentChartIndex + 1) % chartContainers.length;
+            updateChartVisibility();
+        });
+
+        updateChartVisibility(); // Initialize visibility
+    </script>
+    <div id="live-agents-section" onclick="toggleLiveAgents()">
+        <h4>Live Agents</h4>
+        <div id="live-agents-list">
+            <button id="refresh-live-agents" onclick="updateLiveAgents(event)">
+                <img src="refresh-icon.png" alt="Refresh" style="width: 20px; height: 20px; cursor: pointer;">
+            </button>
+            <p>No agents are currently online.</p>
+        </div>
+    </div>
+</body>
+</html>
