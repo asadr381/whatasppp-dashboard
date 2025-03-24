@@ -348,7 +348,7 @@ ${formattedActivities}`;
         
                 case 6:
                     if (!["1", "2", "3"].includes(userMessage)) {
-                        sendWhatsAppMessage(senderId, "⚠️ Invalid selection. Please choose a valid shipment type:\n1️⃣ Letter (0.5kg only)\n2️⃣ Document (0.5kg to 5kg only)\n3️⃣ Parcel (0.5kg to 70kg)");
+                        sendWhatsAppMessage(senderId, "⚠️ Invalid selection. Please choose a valid shipment type:\n1️⃣ Letter (0.5kg only)\n2️⃣ Document (0.5kg to 5kg only)\n3️⃣ Parcel (0.5kg to 70kg only)");
                         ticketCreationState[senderId].pop(); // Remove invalid selection
                     } else {
                         sendWhatsAppMessage(senderId, "⚖️ Please enter shipment weight in kg:");
@@ -455,7 +455,8 @@ ${formattedActivities}`;
                         "2": "Customs Requirements / Paper Work",
                         "3": "Product Inquiry",
                         "4": "Transit Time",
-                        "5": "Corporate or Business Account"
+                        "5": "Corporate or Business Account",
+                        "6": "Rate Inquiry CS" // Add mapping for "6"
                     };
         
                     const formattedTicketType = ticketTypeMap[ticketType] || ticketType;
@@ -631,7 +632,7 @@ async function createTicket(senderId, ticketData, attempt = 1) {
         };
 
         const response = await cloudscraper(options);
-        sendWhatsAppMessage(senderId, "✅ Your query has been received. Our team will contact you very soon. \n0️⃣ Main Menu");
+        sendWhatsAppMessage(senderId, "✅ Your query has been received. Our team will contact you very soon. \n Enter *EXIT* for Main Menu");
 
         // Emit event to frontend
         io.emit('ticketCreated', { senderId, ticketData });
@@ -879,7 +880,8 @@ app.post('/create-ticket', async (req, res) => {
         "2": "Customs Requirements / Paper Work",
         "3": "Product Inquiry",
         "4": "Transit Time",
-        "5": "Corporate or Business Account"
+        "5": "Corporate or Business Account",
+        "6": "Rate Inquiry CS" // Add mapping for "6"
     };
 
     const formattedTicketType = ticketTypeMap[ticketType] || ticketType;
